@@ -1,0 +1,20 @@
+# 의존성
+node_modules/
+
+# 프론트엔드 빌드 산출물
+dist/
+dist-ssr/
+
+# Rust / Tauri 빌드 산출물
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# 로그·에디터·OS
+*.log
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code 로컬 설정
+.claude/settings.local.json

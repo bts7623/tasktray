@@ -1,0 +1,91 @@
+/* TaskTray 공통 스타일. 텍스트 위주 미니멀, 시스템 기본 폰트(맑은 고딕) 사용 (UI-09). */
+
+:root {
+  /* M6에서 settings.json 기반 테마로 대체될 기본값 (스키마 §6.2 예시 값) */
+  --bg: #1e1e1e;
+  --fg: #e0e0e0;
+  --muted: #8a8a8a;
+  --border: #3a3a3a;
+  --accent: #4a9eff;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ===== 메인 패널 ===== */
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.panel-head {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.quick-input {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.quick-input input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.section {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 4px 0;
+}
+
+/* ===== 설정 / 로우데이터 등 일반 창 ===== */
+.page {
+  padding: 24px;
+}
+
+.page h1 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
