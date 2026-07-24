@@ -28,7 +28,7 @@
 
 | 단계 | 작업 내용 | 상태 |
 |:--:|----------|------|
-| M1 | 프로젝트 초기화(Tauri+TS+Vite), 트레이 상주 + 좌클릭 패널 토글 + 우클릭 메뉴 골격 | 미착수 |
+| M1 | 프로젝트 초기화(Tauri+TS+Vite), 트레이 상주 + 좌클릭 패널 토글 + 우클릭 메뉴 골격 | 코드 완료(빌드 검증은 Build Tools 설치 후) |
 | M2 | 데이터 계층: 저장 경로 지정, tasks/settings JSON 읽기·쓰기, atomic write + 백업 | 미착수 |
 | M3 | Task 핵심 기능 (FR-01~12) | 미착수 |
 | M4 | flow 워크플로우 (상태 흐름 §3.2) | 미착수 |
@@ -62,4 +62,6 @@
 
 - 개발 PC: Windows 11 Pro (x64)
 - 설치 확인됨: Node v25.9.0 / npm 11.12.1 / pnpm 11.1.2 / git 2.53.0 / WebView2 Runtime 150.x
-- **미설치: Rust(cargo/rustc), MSVC Build Tools, Windows SDK** → Tauri 빌드 불가 상태 (Q-01)
+- 설치 완료: **Rust 1.97.1** (stable-x86_64-pc-windows-msvc)
+- **미설치: Visual Studio Build Tools 2022 (VCTools + Windows SDK)** → `link.exe` 부재로 Rust 최종 링크 단계 실패. 사용자가 관리자 권한으로 직접 설치 필요 (winget 비대화형 설치는 UAC 취소로 실패, 종료코드 1602).
+- pnpm 빌드 스크립트 승인: `pnpm-workspace.yaml`의 `allowBuilds: { esbuild: true }` (pnpm 11.1.2 방식)
