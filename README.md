@@ -58,6 +58,13 @@ pnpm tauri build
 - 산출물: `src-tauri/target/release/bundle/nsis/TaskTray_x.y.z_x64-setup.exe`
 - per-user 설치(관리자 권한 불필요)로 배포됩니다.
 
+## 데이터 저장 위치
+
+- `settings.json` : `%APPDATA%\TaskTray\settings.json` (앱 설정)
+- `tasks.json` / `tasks.backup.json` : **사용자가 지정한 폴더** (최초 실행 시 선택, 취소 시 `%APPDATA%\TaskTray`)
+- 모든 시각은 항상 KST(+09:00)로 기록됩니다.
+- 저장은 임시파일 교체(atomic write) 방식이며, `tasks.json`은 직전 버전 1개를 자동 백업합니다.
+
 ## 프로젝트 구조
 
 ```
@@ -86,7 +93,7 @@ tasktray/
 | 단계 | 내용 | 상태 |
 |:--:|------|:--:|
 | M1 | 프로젝트 초기화 + 트레이 상주/패널 토글/우클릭 메뉴 골격 | ✅ |
-| M2 | 데이터 계층 (저장 경로 지정, JSON 읽기·쓰기, atomic write + 백업) | ⬜ |
+| M2 | 데이터 계층 (저장 경로 지정, JSON 읽기·쓰기, atomic write + 백업) | ✅ |
 | M3 | Task 핵심 기능 (FR-01~12) | ⬜ |
 | M4 | flow 워크플로우 (상태 흐름) | ⬜ |
 | M5 | 로우데이터 화면 + 실적 리포트 (FR-13~19) | ⬜ |

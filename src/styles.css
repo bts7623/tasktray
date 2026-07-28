@@ -80,6 +80,40 @@ body {
   padding: 4px 0;
 }
 
+.datapath {
+  font-size: 0.7rem;
+  color: var(--muted);
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.banner {
+  font-size: 0.78rem;
+  padding: 8px 12px;
+  line-height: 1.4;
+}
+
+.banner-warn {
+  background: #4a3a1a;
+  color: #ffd98a;
+  border-bottom: 1px solid var(--border);
+}
+
+.banner-error {
+  background: #4a1e1e;
+  color: #ff9a9a;
+}
+
+.banner-sub {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  word-break: break-all;
+}
+
 /* ===== 설정 / 로우데이터 등 일반 창 ===== */
 .page {
   padding: 24px;

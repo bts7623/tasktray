@@ -5,6 +5,7 @@
   "windows": ["main", "settings", "rawdata"],
   "permissions": [
     "core:default",
-    "opener:default"
+    "opener:default",
+    "dialog:default"
   ]
 }
