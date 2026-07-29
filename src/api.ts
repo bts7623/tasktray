@@ -50,14 +50,11 @@ export interface TasksLoad {
 
 export const getSettings = () => invoke<Settings>("get_settings");
 
-export const defaultDataDir = () => invoke<string>("default_data_dir");
+/** 앱이 자동 관리하는 데이터 폴더 경로(%APPDATA%\TaskTray). */
+export const getDataDir = () => invoke<string>("get_data_dir");
 
-/** 네이티브 폴더 선택 다이얼로그. 취소 시 null. */
-export const chooseDataFolder = () => invoke<string | null>("choose_data_folder");
-
-/** 저장 폴더 확정(null 이면 기본 경로). settings 를 반환. */
-export const initData = (path: string | null) =>
-  invoke<Settings>("init_data", { path });
+/** 데이터 폴더를 탐색기로 연다. (환경설정 [저장 폴더 열기]) */
+export const openDataFolder = () => invoke<void>("open_data_folder");
 
 export const loadTasks = () => invoke<TasksLoad>("load_tasks");
 

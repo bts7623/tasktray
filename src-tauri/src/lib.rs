@@ -26,21 +26,20 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_settings,
-            commands::default_data_dir,
-            commands::choose_data_folder,
-            commands::init_data,
+            commands::get_data_dir,
+            commands::open_data_folder,
             commands::load_tasks,
             commands::save_tasks,
             commands::save_settings,
         ])
         .setup(|app| {
             tray::create_tray(app.handle())?;
+            // 데이터 폴더/파일을 앱이 자동 준비한다(사용자 경로 지정 없음, D-08).
+            if let Ok(dir) = storage::app_dir(app.handle()) {
+                let _ = storage::ensure_data_dir(&dir.to_string_lossy());
+            }
             // 시작 시 패널은 숨김 상태로 우측 하단에 미리 배치해 둔다.
             window::position_panel(app.handle());
-            // 최초 실행(저장 폴더 미지정)이면 패널을 띄워 폴더 지정 안내가 보이도록 한다. (D-05)
-            if storage::load_settings(app.handle()).data_path.is_none() {
-                window::toggle_panel(app.handle());
-            }
             Ok(())
         })
         .on_window_event(window::handle_window_event)

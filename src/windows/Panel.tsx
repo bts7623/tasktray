@@ -1,52 +1,56 @@
 // 메인 패널 (트레이 좌클릭 시 우측 하단 표시).
-// M2: 최초 실행 시 저장 폴더 지정(D-05) + tasks 로드 후 영역별 건수 표시.
+// M2: tasks 로드 후 영역별 건수 표시. 저장 위치는 앱이 자동 관리(%APPDATA%\TaskTray, D-08).
 // 실제 Task 입력/목록/CRUD 는 M3, flow 처리는 M4.
 
 import { useEffect, useRef, useState } from "react";
-import {
-  chooseDataFolder,
-  getSettings,
-  initData,
-  loadTasks,
-  type Settings,
-  type Task,
-} from "../api";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { loadTasks, type Task } from "../api";
 
 type Phase = "loading" | "ready" | "error";
 
 export default function Panel() {
   const [phase, setPhase] = useState<Phase>("loading");
-  const [settings, setSettings] = useState<Settings | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [warning, setWarning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // React StrictMode(개발 모드)의 이펙트 2회 실행으로 폴더 다이얼로그가 중복 열리는 것 방지
   const bootstrapped = useRef(false);
+  const ready = useRef(false);
+
+  // tasks.json 을 다시 읽어 상태에 반영한다. (외부 편집/타 PC 파일 반영: FR-22, DR-02)
+  const reloadTasks = async () => {
+    try {
+      const load = await loadTasks();
+      setTasks(load.file.tasks);
+      setWarning(load.message ?? null); // 손상 복구 등 알림 (DR-04)
+    } catch (e) {
+      setError(String(e));
+      setPhase("error");
+    }
+  };
 
   useEffect(() => {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
 
     (async () => {
-      try {
-        let s = await getSettings();
-
-        // 최초 실행: 저장 폴더가 없으면 즉시 폴더 선택 다이얼로그, 취소 시 기본 경로 (D-05)
-        if (!s.dataPath) {
-          const picked = await chooseDataFolder();
-          s = await initData(picked); // picked 가 null 이면 기본 경로 사용
-        }
-        setSettings(s);
-
-        const load = await loadTasks();
-        setTasks(load.file.tasks);
-        if (load.message) setWarning(load.message); // 손상 복구 등 알림 (DR-04)
-        setPhase("ready");
-      } catch (e) {
-        setError(String(e));
-        setPhase("error");
-      }
+      await reloadTasks();
+      setPhase("ready");
+      ready.current = true;
     })();
+  }, []);
+
+  // 패널이 다시 열려(포커스) 표시될 때마다 최신 tasks.json 을 반영한다.
+  // 트레이 앱은 창을 숨겼다 보여도 웹뷰가 재시작되지 않으므로, 포커스 시 재로드가 필요하다.
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    getCurrentWindow()
+      .onFocusChanged(({ payload: focused }) => {
+        if (focused && ready.current) void reloadTasks();
+      })
+      .then((u) => {
+        unlisten = u;
+      });
+    return () => unlisten?.();
   }, []);
 
   // 기본 화면 집계 대상: 삭제되지 않은 Task (archived 는 기본 화면에서 숨김)
@@ -73,13 +77,6 @@ export default function Panel() {
       {phase === "ready" && (
         <>
           {warning && <div className="banner banner-warn">{warning}</div>}
-
-          {/* 저장 경로 표시(검증용) */}
-          {settings?.dataPath && (
-            <div className="datapath" title={settings.dataPath}>
-              저장 위치: {settings.dataPath}
-            </div>
-          )}
 
           {/* ① 빠른 입력창 (M3에서 등록 기능 연결) */}
           <div className="quick-input">

@@ -60,8 +60,9 @@ pnpm tauri build
 
 ## 데이터 저장 위치
 
-- `settings.json` : `%APPDATA%\TaskTray\settings.json` (앱 설정)
-- `tasks.json` / `tasks.backup.json` : **사용자가 지정한 폴더** (최초 실행 시 선택, 취소 시 `%APPDATA%\TaskTray`)
+- 모든 데이터(`tasks.json`, `tasks.backup.json`, `settings.json`)는 **앱이 `%APPDATA%\TaskTray` 폴더에서 자동 관리**합니다. 사용자가 경로를 지정할 필요가 없습니다.
+- 환경설정의 **[저장 폴더 열기]** 버튼으로 이 폴더를 탐색기에서 열 수 있습니다.
+- 프로그램을 제거·재설치·버전업해도 이 폴더의 데이터는 유지됩니다.
 - 모든 시각은 항상 KST(+09:00)로 기록됩니다.
 - 저장은 임시파일 교체(atomic write) 방식이며, `tasks.json`은 직전 버전 1개를 자동 백업합니다.
 
