@@ -50,17 +50,64 @@ body {
 .quick-input {
   padding: 8px 12px;
   border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
 }
 
-.quick-input input {
-  width: 100%;
-  padding: 8px 10px;
+.quick-input input,
+.edit-title input,
+.task-row input[type="text"],
+.task-row input[type="date"] {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #2a2a2a;
   color: var(--fg);
   font-family: inherit;
   font-size: 0.9rem;
+}
+
+.qi-title {
+  width: 100%;
+  padding: 8px 10px;
+}
+
+.qi-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.qi-category {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+.qi-due {
+  flex: 0 0 auto;
+  padding: 6px 6px;
+  color-scheme: dark;
+}
+
+.qi-add {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.qi-add:hover {
+  filter: brightness(1.1);
+}
+
+/* 목록 영역: 패널 안에서 세로 스크롤 */
+.lists {
+  flex: 1 1 auto;
+  overflow-y: auto;
 }
 
 .section {
@@ -72,6 +119,230 @@ body {
   font-size: 0.8rem;
   color: var(--muted);
   margin-bottom: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.caret {
+  display: inline-block;
+  width: 1em;
+  color: var(--muted);
+}
+
+/* 오늘 할 일(Pin) 영역: 최상단 별도 음영 (D-11) */
+.pin-section {
+  background: #262a33;
+}
+
+.pin-section .section-title {
+  color: #cdd4ff;
+  font-weight: 600;
+}
+
+/* ===== Task 1행 (UI-06) ===== */
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.task-row .chk {
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.task-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.task-title {
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-title.done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.task-meta {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.task-meta .cat {
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: #333;
+  border-radius: 4px;
+  padding: 1px 5px;
+  max-width: 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-meta .due {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.task-meta .due.overdue {
+  color: #ff6b6b;
+  font-weight: 600;
+}
+
+.task-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.task-row:hover .task-actions {
+  opacity: 1;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background: #333;
+  color: var(--fg);
+}
+
+.icon-btn.pin.on {
+  color: #ffcf4a;
+  opacity: 1;
+}
+
+/* Pin 켜진 별은 항상 보이도록(hover 아니어도) */
+.task-row .icon-btn.pin.on {
+  opacity: 1;
+}
+
+.task-row .task-actions .icon-btn.pin.on {
+  opacity: 1;
+}
+
+/* ===== 행 편집 모드 (FR-05) ===== */
+.task-row.editing {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px 0;
+}
+
+.edit-title {
+  width: 100%;
+  padding: 6px 8px;
+}
+
+.edit-row {
+  display: flex;
+  gap: 6px;
+}
+
+.edit-category {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 8px;
+}
+
+.edit-due {
+  flex: 0 0 auto;
+  padding: 5px 6px;
+  color-scheme: dark;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn-sm {
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.btn-sm.ghost {
+  background: #2a2a2a;
+  color: var(--fg);
+}
+
+/* ===== 삭제 확인 오버레이 (FR-06) ===== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.confirm {
+  background: #262626;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  width: 84%;
+  max-width: 300px;
+}
+
+.confirm-msg {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.confirm-title {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn.danger {
+  background: #c0392b;
+  color: #fff;
+  border-color: #c0392b;
+}
+
+.btn.ghost {
+  background: #2a2a2a;
 }
 
 .empty {
