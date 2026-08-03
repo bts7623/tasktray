@@ -12,9 +12,10 @@ interface Props {
   onTogglePin: (task: Task) => void;
   onEdit: (task: Task, patch: { title: string; category: string | null; dueDate: string | null }) => void;
   onDelete: (task: Task) => void;
+  onFlow?: (task: Task, flow: "registered" | "excluded") => void; // done 행 flow 처리 (FR-10)
 }
 
-export default function TaskRow({ task, onToggleComplete, onTogglePin, onEdit, onDelete }: Props) {
+export default function TaskRow({ task, onToggleComplete, onTogglePin, onEdit, onDelete, onFlow }: Props) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [category, setCategory] = useState(task.category ?? "");
@@ -105,6 +106,26 @@ export default function TaskRow({ task, onToggleComplete, onTogglePin, onEdit, o
           )}
         </span>
       </div>
+
+      {/* done 행: flow 처리 버튼 상시 노출 (UI-07, FR-10) */}
+      {isDone && onFlow && (
+        <div className="flow-actions">
+          <button
+            className="flow-btn reg"
+            title="flow 에 등록 완료로 표시하고 종료"
+            onClick={() => onFlow(task, "registered")}
+          >
+            flow 등록
+          </button>
+          <button
+            className="flow-btn exc"
+            title="실적 제외로 종료"
+            onClick={() => onFlow(task, "excluded")}
+          >
+            제외
+          </button>
+        </div>
+      )}
 
       <div className="task-actions">
         {/* Pin 토글은 active 에서만 (done 은 flow 대기 영역) */}

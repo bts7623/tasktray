@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Task } from "./api";
 import {
   activeTasks,
+  archiveTask,
   categoryShort,
   collectCategories,
   doneTasks,
@@ -10,6 +11,7 @@ import {
   parseCategory,
   pinnedTasks,
   resolveTitleCategory,
+  restoreToDone,
   todayKst,
 } from "./tasks";
 
@@ -118,5 +120,37 @@ describe("영역 필터/정렬 (FR-12/D-10/D-11)", () => {
   });
   it("done: 완료일 최신순", () => {
     expect(doneTasks(tasks).map((t) => t.id)).toEqual(["d2", "d1"]);
+  });
+});
+
+describe("flow 처리 (FR-10/11, §3.2)", () => {
+  const done = mk({ id: "d", status: "done", completedAt: "2026-07-02T09:00:00+09:00" });
+
+  it("archiveTask: done→archived, flowStatus/flowProcessedAt 기록", () => {
+    const a = archiveTask(done, "registered");
+    expect(a.status).toBe("archived");
+    expect(a.flowStatus).toBe("registered");
+    expect(a.flowProcessedAt).toMatch(/\+09:00$/);
+    expect(a.completedAt).toBe(done.completedAt); // 완료일은 보존
+  });
+
+  it("archiveTask 제외", () => {
+    expect(archiveTask(done, "excluded").flowStatus).toBe("excluded");
+  });
+
+  it("restoreToDone: archived→done, flow 기록 초기화", () => {
+    const a = archiveTask(done, "registered");
+    const r = restoreToDone(a);
+    expect(r.status).toBe("done");
+    expect(r.flowStatus).toBeNull();
+    expect(r.flowProcessedAt).toBeNull();
+    expect(r.completedAt).toBe(done.completedAt); // 완료일은 그대로
+  });
+
+  it("archived 는 어느 패널 영역에도 안 나옴", () => {
+    const list = [archiveTask(done, "registered")];
+    expect(pinnedTasks(list)).toHaveLength(0);
+    expect(activeTasks(list)).toHaveLength(0);
+    expect(doneTasks(list)).toHaveLength(0);
   });
 });

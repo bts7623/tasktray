@@ -126,3 +126,23 @@ export function createTask(title: string, category: string | null, dueDate: stri
 export function replaceTask(tasks: Task[], updated: Task): Task[] {
   return tasks.map((t) => (t.id === updated.id ? updated : t));
 }
+
+/** flow 처리: done → archived. flowStatus 기록, flowProcessedAt=KST. (FR-10, §3.2) */
+export function archiveTask(task: Task, flow: "registered" | "excluded"): Task {
+  return {
+    ...task,
+    status: "archived",
+    flowStatus: flow,
+    flowProcessedAt: nowKst(),
+  };
+}
+
+/** 종료 취소: archived → done. flow 기록 초기화. (FR-11, §3.2) */
+export function restoreToDone(task: Task): Task {
+  return {
+    ...task,
+    status: "done",
+    flowStatus: null,
+    flowProcessedAt: null,
+  };
+}

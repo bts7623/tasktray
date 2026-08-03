@@ -1,5 +1,6 @@
 // 메인 패널 (트레이 좌클릭). M3: Task 등록/수정/삭제/완료/Pin + 3영역 목록·정렬 (FR-01~12).
-// 저장 위치는 앱 자동 관리(D-08). flow 등록완료/제외(→archived)는 M4.
+// M4: done → flow 등록완료/제외 → archived 숨김 + 즉시 실행취소 스낵바 (FR-10/11, §3.2).
+// 저장 위치는 앱 자동 관리(D-08). archived 상시 종료취소·로우데이터·리포트는 M5.
 
 import { useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -12,6 +13,7 @@ import {
 } from "../api";
 import {
   activeTasks,
+  archiveTask,
   collectCategories,
   createTask,
   doneTasks,
@@ -19,9 +21,11 @@ import {
   pinnedTasks,
   replaceTask,
   resolveTitleCategory,
+  restoreToDone,
 } from "../tasks";
 import QuickInput from "../components/QuickInput";
 import TaskRow from "../components/TaskRow";
+import Snackbar from "../components/Snackbar";
 
 type Phase = "loading" | "ready" | "error";
 
@@ -33,6 +37,8 @@ export default function Panel() {
   const [warning, setWarning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Task | null>(null);
+  // flow 처리 직후 실행취소용 스낵바 상태 (D-12). undo 는 직전 done 상태로 복원.
+  const [undoInfo, setUndoInfo] = useState<{ prev: Task; message: string } | null>(null);
   // 영역 접기/펼치기 (UI-05)
   const [collapsed, setCollapsed] = useState({ pin: false, active: false, done: false });
 
@@ -124,6 +130,22 @@ export default function Panel() {
     setPendingDelete(null);
   };
 
+  // flow 처리(등록완료/제외): done → archived, 기본 화면에서 숨김 (FR-10)
+  const processFlow = (task: Task, flow: "registered" | "excluded") => {
+    commit(replaceTask(tasks, archiveTask(task, flow)));
+    setUndoInfo({
+      prev: task, // 복원용 직전 done 스냅샷
+      message: flow === "registered" ? "flow 등록 완료로 종료됨" : "실적 제외로 종료됨",
+    });
+  };
+
+  // 스낵바 실행취소: archived → done 복원 (FR-11, D-12)
+  const undoArchive = () => {
+    if (!undoInfo) return;
+    commit(replaceTask(tasks, restoreToDone(undoInfo.prev)));
+    setUndoInfo(null);
+  };
+
   const pinned = pinnedTasks(tasks);
   const active = activeTasks(tasks);
   const done = doneTasks(tasks);
@@ -134,6 +156,7 @@ export default function Panel() {
     onTogglePin: togglePin,
     onEdit: editTask,
     onDelete: (t: Task) => setPendingDelete(t),
+    onFlow: processFlow,
   };
 
   const toggleSection = (key: keyof typeof collapsed) =>
@@ -209,6 +232,15 @@ export default function Panel() {
             </section>
           </div>
         </>
+      )}
+
+      {/* flow 처리 직후 실행취소 스낵바 (FR-11, D-12) */}
+      {undoInfo && (
+        <Snackbar
+          message={undoInfo.message}
+          onUndo={undoArchive}
+          onDismiss={() => setUndoInfo(null)}
+        />
       )}
 
       {/* 삭제 확인 (FR-06). 네이티브 다이얼로그 대신 패널 내부 오버레이로 포커스 유지 */}

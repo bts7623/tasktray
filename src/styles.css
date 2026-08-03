@@ -244,6 +244,80 @@ body {
   opacity: 1;
 }
 
+/* ===== done 행 flow 처리 버튼 (UI-07, FR-10) ===== */
+.flow-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 4px;
+}
+
+.flow-btn {
+  font-family: inherit;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.flow-btn.reg {
+  background: #1e3a5f;
+  color: #9ccaff;
+  border-color: #2b5486;
+}
+
+.flow-btn.reg:hover {
+  background: #24507f;
+}
+
+.flow-btn.exc {
+  background: #2a2a2a;
+  color: var(--muted);
+}
+
+.flow-btn.exc:hover {
+  background: #333;
+  color: var(--fg);
+}
+
+/* ===== 실행취소 스낵바 (FR-11, D-12) ===== */
+.snackbar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #333842;
+  color: #f0f0f0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  z-index: 90;
+}
+
+.snackbar-undo {
+  flex: 0 0 auto;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.snackbar-undo:hover {
+  filter: brightness(1.1);
+}
+
 /* ===== 행 편집 모드 (FR-05) ===== */
 .task-row.editing {
   flex-direction: column;
