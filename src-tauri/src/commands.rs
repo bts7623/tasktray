@@ -58,3 +58,9 @@ pub fn save_tasks(app: AppHandle, file: TasksFile) -> Result<(), String> {
 pub fn save_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
     storage::save_settings(&app, &settings)
 }
+
+/// 임의 경로에 텍스트 파일 저장. 실적 리포트(Markdown/CSV) 내보내기용. (FR-19)
+#[tauri::command]
+pub fn write_text_file(path: String, contents: String) -> Result<(), String> {
+    std::fs::write(&path, contents).map_err(|e| format!("파일 저장 실패({path}): {e}"))
+}

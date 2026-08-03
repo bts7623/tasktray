@@ -31,6 +31,7 @@ pub fn run() {
             commands::load_tasks,
             commands::save_tasks,
             commands::save_settings,
+            commands::write_text_file,
         ])
         .setup(|app| {
             tray::create_tray(app.handle())?;

@@ -62,3 +62,7 @@ export const saveTasks = (file: TasksFile) => invoke<void>("save_tasks", { file 
 
 export const saveSettings = (settings: Settings) =>
   invoke<void>("save_settings", { settings });
+
+/** 임의 경로에 텍스트 파일 저장 (리포트 내보내기, FR-19). */
+export const writeTextFile = (path: string, contents: string) =>
+  invoke<void>("write_text_file", { path, contents });

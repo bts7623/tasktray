@@ -481,6 +481,144 @@ body {
   margin: 0 0 12px;
 }
 
+/* ===== 로우데이터 창 (M5) ===== */
+.rawdata {
+  padding: 16px 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rawdata h1 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
+
+.rd-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.rd-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.rd-toolbar select,
+.rd-search,
+.rd-report select,
+.rd-report input[type="date"] {
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: var(--fg);
+  color-scheme: dark;
+}
+
+.rd-search {
+  min-width: 180px;
+}
+
+.rd-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.rd-toolbar .btn {
+  margin-left: auto;
+}
+
+.rd-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.rd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.rd-table th,
+.rd-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.rd-table thead th {
+  position: sticky;
+  top: 0;
+  background: #2a2a2a;
+  color: var(--muted);
+  font-weight: 600;
+  z-index: 1;
+}
+
+.rd-table .c-title {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-table tr.row-deleted td {
+  color: #7a7a7a;
+  text-decoration: line-through;
+}
+
+.rd-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px 0 !important;
+}
+
+.rd-report {
+  flex: 0 0 auto;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.rd-report h2 {
+  font-size: 0.9rem;
+  margin: 0 0 8px;
+}
+
+.rd-report-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rd-report-row label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.rd-note {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
 .setting-group {
   margin-bottom: 20px;
 }
