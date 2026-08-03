@@ -301,6 +301,18 @@ body {
   z-index: 90;
 }
 
+.snackbar-msg {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.snackbar-count {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .snackbar-undo {
   flex: 0 0 auto;
   font-family: inherit;
