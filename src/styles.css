@@ -1,13 +1,19 @@
 /* TaskTray 공통 스타일. 텍스트 위주 미니멀, 시스템 기본 폰트(맑은 고딕) 사용 (UI-09). */
 
 :root {
-  /* M6에서 settings.json 기반 테마로 대체될 기본값 (스키마 §6.2 예시 값) */
+  /* --bg/--fg/font-size 는 theme.ts 가 settings 기준으로 주입한다(FR-26). 아래는 기본값. */
   --bg: #1e1e1e;
   --fg: #e0e0e0;
-  --muted: #8a8a8a;
-  --border: #3a3a3a;
   --accent: #4a9eff;
   font-size: 14px;
+
+  /* --bg/--fg 에서 파생 — 밝은/어두운 배경 모두 대응 */
+  --muted: color-mix(in srgb, var(--fg) 55%, transparent);
+  --border: color-mix(in srgb, var(--fg) 22%, transparent);
+  --surface: color-mix(in srgb, var(--fg) 7%, var(--bg));
+  --surface-2: color-mix(in srgb, var(--fg) 14%, var(--bg));
+  --raise: color-mix(in srgb, var(--fg) 10%, var(--bg));
+  --pin-bg: color-mix(in srgb, var(--accent) 12%, var(--bg));
 }
 
 * {
@@ -59,7 +65,7 @@ body {
 .task-row input[type="date"] {
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #2a2a2a;
+  background: var(--surface);
   color: var(--fg);
   font-family: inherit;
   font-size: 0.9rem;
@@ -131,11 +137,11 @@ body {
 
 /* 오늘 할 일(Pin) 영역: 최상단 별도 음영 (D-11) */
 .pin-section {
-  background: #262a33;
+  background: var(--pin-bg);
 }
 
 .pin-section .section-title {
-  color: #cdd4ff;
+  color: var(--fg);
   font-weight: 600;
 }
 
@@ -183,7 +189,7 @@ body {
 .task-meta .cat {
   font-size: 0.72rem;
   color: var(--muted);
-  background: #333;
+  background: var(--surface-2);
   border-radius: 4px;
   padding: 1px 5px;
   max-width: 90px;
@@ -226,7 +232,7 @@ body {
 }
 
 .icon-btn:hover {
-  background: #333;
+  background: var(--surface-2);
   color: var(--fg);
 }
 
@@ -272,12 +278,12 @@ body {
 }
 
 .flow-btn.exc {
-  background: #2a2a2a;
+  background: var(--surface);
   color: var(--muted);
 }
 
 .flow-btn.exc:hover {
-  background: #333;
+  background: var(--surface-2);
   color: var(--fg);
 }
 
@@ -291,8 +297,8 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: #333842;
-  color: #f0f0f0;
+  background: var(--raise);
+  color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
@@ -378,7 +384,7 @@ body {
 }
 
 .btn-sm.ghost {
-  background: #2a2a2a;
+  background: var(--surface);
   color: var(--fg);
 }
 
@@ -394,7 +400,7 @@ body {
 }
 
 .confirm {
-  background: #262626;
+  background: var(--raise);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 16px;
@@ -428,7 +434,7 @@ body {
 }
 
 .btn.ghost {
-  background: #2a2a2a;
+  background: var(--surface);
 }
 
 .empty {
@@ -520,7 +526,7 @@ body {
   padding: 5px 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #2a2a2a;
+  background: var(--surface);
   color: var(--fg);
   color-scheme: dark;
 }
@@ -562,7 +568,7 @@ body {
 .rd-table thead th {
   position: sticky;
   top: 0;
-  background: #2a2a2a;
+  background: var(--surface);
   color: var(--muted);
   font-weight: 600;
   z-index: 1;
@@ -575,7 +581,7 @@ body {
 }
 
 .rd-table tr.row-deleted td {
-  color: #7a7a7a;
+  color: var(--muted);
   text-decoration: line-through;
 }
 
@@ -619,14 +625,81 @@ body {
   line-height: 1.5;
 }
 
+.settings {
+  max-width: 460px;
+}
+
 .setting-group {
   margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
 .setting-label {
   font-weight: 600;
   font-size: 0.9rem;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+  padding: 5px 0;
+}
+
+.setting-item.checkbox {
+  cursor: pointer;
+}
+
+.setting-item > span {
+  color: var(--fg);
+}
+
+.setting-item input[type="number"] {
+  width: 72px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.setting-item input[type="color"] {
+  width: 44px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.setting-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preset-group {
+  display: flex;
+  gap: 4px;
+}
+
+.version {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 .setting-desc {
@@ -638,7 +711,7 @@ body {
 
 .datapath-box {
   font-size: 0.78rem;
-  background: #2a2a2a;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 10px;
@@ -653,12 +726,12 @@ body {
   padding: 8px 14px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #2a2a2a;
+  background: var(--surface);
   color: var(--fg);
   cursor: pointer;
 }
 
 .btn:hover {
-  background: #333;
+  background: var(--surface-2);
   border-color: var(--accent);
 }

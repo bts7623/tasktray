@@ -5,8 +5,14 @@
   "windows": ["main", "settings", "rawdata"],
   "permissions": [
     "core:default",
+    "core:window:allow-set-size",
+    "core:event:default",
     "opener:default",
     "dialog:default",
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "autostart:default",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }

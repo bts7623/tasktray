@@ -66,3 +66,20 @@ export const saveSettings = (settings: Settings) =>
 /** 임의 경로에 텍스트 파일 저장 (리포트 내보내기, FR-19). */
 export const writeTextFile = (path: string, contents: string) =>
   invoke<void>("write_text_file", { path, contents });
+
+/** Windows 시작 시 자동 실행 등록/해제 (FR-27). */
+export const setAutostart = (enabled: boolean) =>
+  invoke<void>("set_autostart", { enabled });
+
+/** 앱 버전 문자열 (NFR-04). */
+export const appVersion = () => invoke<string>("app_version");
+
+/** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
+export function defaultSettings(): Omit<Settings, "dataPath"> {
+  return {
+    theme: { backgroundColor: "#1e1e1e", textColor: "#e0e0e0", fontSize: 14 },
+    window: { width: 360, height: 720 },
+    autoStart: false,
+    titleAutoParse: false,
+  };
+}

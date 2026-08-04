@@ -4,6 +4,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { LogicalSize } from "@tauri-apps/api/dpi";
+import { listen } from "@tauri-apps/api/event";
 import {
   getSettings,
   loadTasks,
@@ -45,6 +47,13 @@ export default function Panel() {
   const bootstrapped = useRef(false);
   const ready = useRef(false);
 
+  // 설정의 창 크기를 메인 패널(자기 자신)에 적용 (FR-24 창 크기 즉시 반영)
+  const applySize = (s: Settings) => {
+    getCurrentWindow()
+      .setSize(new LogicalSize(s.window.width, s.window.height))
+      .catch(() => {});
+  };
+
   const reload = async () => {
     try {
       const load = await loadTasks();
@@ -62,7 +71,9 @@ export default function Panel() {
     bootstrapped.current = true;
     (async () => {
       try {
-        setSettings(await getSettings());
+        const s = await getSettings();
+        setSettings(s);
+        applySize(s);
       } catch {
         /* 설정 로드 실패 시 기본 동작 유지 */
       }
@@ -70,6 +81,16 @@ export default function Panel() {
       setPhase("ready");
       ready.current = true;
     })();
+  }, []);
+
+  // 설정 변경 즉시 반영: 창 크기 리사이즈 + titleAutoParse 등 갱신 (FR-26)
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen<Settings>("settings-changed", (e) => {
+      setSettings(e.payload);
+      applySize(e.payload);
+    }).then((u) => (unlisten = u));
+    return () => unlisten?.();
   }, []);
 
   // 패널이 다시 열릴(포커스) 때 최신 tasks.json 반영 + 설정(제목 자동분리) 갱신

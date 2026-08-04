@@ -3,7 +3,8 @@
 // 저장 위치는 앱이 자동 관리한다: %APPDATA%\TaskTray (결정 D-08).
 // 사용자는 경로를 지정하지 않으며, 환경설정의 [저장 폴더 열기]로 접근한다.
 
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
+use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::storage::{self, Settings, TasksFile, TasksLoad};
@@ -53,14 +54,34 @@ pub fn save_tasks(app: AppHandle, file: TasksFile) -> Result<(), String> {
     storage::save_tasks(&dir, &file)
 }
 
-/// settings.json 저장. atomic write (백업 없음, D-07). (FR-26, DR-02)
+/// settings.json 저장 후 창 간 즉시 반영 이벤트 emit. (FR-26, DR-02)
 #[tauri::command]
 pub fn save_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
-    storage::save_settings(&app, &settings)
+    storage::save_settings(&app, &settings)?;
+    // 모든 창(패널·설정·로우데이터)이 수신해 테마/창크기를 즉시 재적용한다.
+    let _ = app.emit("settings-changed", &settings);
+    Ok(())
+}
+
+/// Windows 시작 시 자동 실행 등록/해제. (FR-27)
+#[tauri::command]
+pub fn set_autostart(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let m = app.autolaunch();
+    if enabled {
+        m.enable().map_err(|e| format!("자동 실행 등록 실패: {e}"))
+    } else {
+        m.disable().map_err(|e| format!("자동 실행 해제 실패: {e}"))
+    }
 }
 
 /// 임의 경로에 텍스트 파일 저장. 실적 리포트(Markdown/CSV) 내보내기용. (FR-19)
 #[tauri::command]
 pub fn write_text_file(path: String, contents: String) -> Result<(), String> {
     std::fs::write(&path, contents).map_err(|e| format!("파일 저장 실패({path}): {e}"))
+}
+
+/// 앱 버전(Semantic Versioning) 반환. 환경설정 하단 표시용. (NFR-04)
+#[tauri::command]
+pub fn app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
 }
