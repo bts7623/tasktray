@@ -9,7 +9,7 @@ import {
   writeTextFile,
   type Task,
 } from "../api";
-import { parseCategory, restoreToDone } from "../tasks";
+import { nowKst, parseCategory, restoreToDone } from "../tasks";
 import { buildCsv, buildMarkdown } from "../report";
 
 type StatusFilter = "all" | "active" | "done" | "archived" | "deleted";
@@ -102,7 +102,9 @@ export default function RawData() {
     const content =
       format === "md" ? buildMarkdown(tasks, start, end) : buildCsv(tasks, start, end);
     const ext = format;
-    const base = `실적리포트_${start || "전체"}_${end || "전체"}.${ext}`;
+    // 파일명 중복 방지용 타임스탬프(KST, 초 단위): 20260804_153000
+    const stamp = nowKst().slice(0, 19).replace(/[-:]/g, "").replace("T", "_");
+    const base = `실적리포트_${start || "전체"}_${end || "전체"}_${stamp}.${ext}`;
     try {
       const path = await save({
         defaultPath: base,
