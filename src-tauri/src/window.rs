@@ -58,7 +58,7 @@ pub fn toggle_panel(app: &AppHandle) {
 
 /// [환경설정]: 별도 창으로 표시 (요구사항 결정 D-02)
 pub fn open_settings(app: &AppHandle) {
-    show_or_create(app, "settings", "TaskTray - 환경설정", 480.0, 560.0);
+    show_or_create(app, "settings", "TaskTray - 환경설정", 500.0, 780.0);
 }
 
 /// [로우데이터 보기]: 별도 창으로 표시 (요구사항 결정 D-02)

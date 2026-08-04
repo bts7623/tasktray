@@ -21,6 +21,14 @@ const FONT_PRESETS: { label: string; size: number }[] = [
   { label: "대", size: 16 },
 ];
 
+// 프리셋 테마(배경/글자 색상). 클릭 시 즉시 적용, 이후 수동 조정도 가능.
+const THEME_PRESETS: { label: string; bg: string; fg: string }[] = [
+  { label: "파스텔 밝은", bg: "#f6f3ec", fg: "#4b4740" },
+  { label: "다크", bg: "#1e1e1e", fg: "#e0e0e0" },
+  { label: "보라톤", bg: "#241a33", fg: "#e9ddff" },
+  { label: "초록톤", bg: "#15241b", fg: "#d6ead8" },
+];
+
 export default function Settings() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [dataDir, setDataDir] = useState("");
@@ -83,6 +91,28 @@ export default function Settings() {
       {/* 테마 (FR-24 ①②③, FR-25) */}
       <section className="setting-group">
         <div className="setting-label">화면 테마</div>
+
+        {/* 프리셋: 클릭 시 배경·글자 색상 즉시 적용 */}
+        <div className="theme-presets">
+          {THEME_PRESETS.map((p) => {
+            const active =
+              settings.theme.backgroundColor.toLowerCase() === p.bg &&
+              settings.theme.textColor.toLowerCase() === p.fg;
+            return (
+              <button
+                key={p.label}
+                className={"theme-swatch" + (active ? " active" : "")}
+                style={{ background: p.bg, color: p.fg }}
+                title={`${p.label} 테마 적용`}
+                onClick={() => setTheme({ backgroundColor: p.bg, textColor: p.fg })}
+              >
+                <span className="swatch-a">가</span>
+                <span className="swatch-name">{p.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="setting-item">
           <span>배경 색상</span>
           <input
