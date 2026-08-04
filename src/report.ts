@@ -1,11 +1,11 @@
 // 실적 리포트 생성 (M5, FR-17~19). 순수 로직 — 단위 테스트 대상.
-// D-13: KPI 총계=등록완료(registered). 제외(excluded)/미처리(done)는 별도 모니터링 섹션(총계 제외).
-//       삭제(deleted)는 리포트에서 완전 제외. 기간은 완료일(completedAt) 기준.
+// D-13(개정): KPI 총계=등록완료(registered). 제외(excluded)/미처리(done)는 대상 범위와 무관하게
+//   항상 하단 별도 모니터링 섹션(MD)·구분 열(CSV)로 표기하며 총계에는 포함하지 않는다.
+//   삭제(deleted)는 리포트에서 완전 제외. 기간은 완료일(completedAt) 기준.
 
 import type { Task } from "./api";
 import { parseCategory } from "./tasks";
 
-export type ReportRange = "registeredOnly" | "withExcluded" | "allCompleted";
 export type Disposition = "registered" | "excluded" | "pending";
 
 const MISC = "미분류";
@@ -33,25 +33,17 @@ function inPeriod(dateIso: string | null, start: string, end: string): boolean {
   return true;
 }
 
-/** 범위에 포함되는 구분 집합. (FR-17 ①②③) */
-function allowed(range: ReportRange): Set<Disposition> {
-  if (range === "registeredOnly") return new Set(["registered"]);
-  if (range === "withExcluded") return new Set(["registered", "excluded"]);
-  return new Set(["registered", "excluded", "pending"]);
-}
-
-/** 기간·범위로 걸러 구분별 Task 목록을 반환. 각 목록은 완료일 오름차순. (FR-18) */
+/** 기간으로 걸러 구분별 Task 목록을 반환. 삭제는 제외, 각 목록은 완료일 오름차순. (FR-18)
+ *  대상 범위 구분 없이 registered/excluded/pending 을 모두 담는다(표기 위치는 생성 단계에서 분리). */
 export function selectForReport(
   tasks: Task[],
-  range: ReportRange,
   start: string,
   end: string,
 ): Record<Disposition, Task[]> {
-  const ok = allowed(range);
   const out: Record<Disposition, Task[]> = { registered: [], excluded: [], pending: [] };
   for (const t of tasks) {
     const d = disposition(t);
-    if (!d || !ok.has(d)) continue;
+    if (!d) continue;
     if (!inPeriod(t.completedAt, start, end)) continue;
     out[d].push(t);
   }
@@ -139,14 +131,9 @@ function groupsToMarkdown(groups: MajorGroup[]): string {
   return lines.join("\n");
 }
 
-/** 실적 리포트 Markdown 생성. (FR-18/19) */
-export function buildMarkdown(
-  tasks: Task[],
-  range: ReportRange,
-  start: string,
-  end: string,
-): string {
-  const sel = selectForReport(tasks, range, start, end);
+/** 실적 리포트 Markdown 생성. 제외·미처리는 항상 하단 별도 섹션. (FR-18/19, D-13 개정) */
+export function buildMarkdown(tasks: Task[], start: string, end: string): string {
+  const sel = selectForReport(tasks, start, end);
   const label = periodLabel(start, end);
 
   const out: string[] = [];
@@ -155,14 +142,14 @@ export function buildMarkdown(
   out.push("");
   out.push(groupsToMarkdown(groupByCategory(sel.registered)) || "(해당 없음)");
 
-  // 제외(모니터링) — 범위 ②③
+  // 제외(모니터링) — 총계 불포함, 하단 별도 섹션. 항상 표기.
   if (sel.excluded.length > 0) {
     out.push("---");
     out.push(`# 제외 (모니터링, 총 ${sel.excluded.length}건)`);
     out.push("");
     out.push(groupsToMarkdown(groupByCategory(sel.excluded)));
   }
-  // 미처리(모니터링) — 범위 ③
+  // 미처리(모니터링) — 총계 불포함, 하단 별도 섹션. 항상 표기.
   if (sel.pending.length > 0) {
     out.push("---");
     out.push(`# flow 미처리 (모니터링, 총 ${sel.pending.length}건)`);
@@ -179,17 +166,13 @@ function csvCell(v: string): string {
   return v;
 }
 
-/** 실적 리포트 CSV 생성. 구분 열로 등록완료/제외/미처리 구분. (FR-19) */
-export function buildCsv(
-  tasks: Task[],
-  range: ReportRange,
-  start: string,
-  end: string,
-): string {
-  const sel = selectForReport(tasks, range, start, end);
+/** 실적 리포트 CSV 생성. 구분 열로 등록완료/제외/미처리 구분(제외·미처리는 아래쪽 정렬). (FR-19) */
+export function buildCsv(tasks: Task[], start: string, end: string): string {
+  const sel = selectForReport(tasks, start, end);
   const rows: string[][] = [];
   rows.push(["완료일", "구분", "대분류", "소분류", "제목", "카테고리", "등록일"]);
 
+  // 등록완료 → 제외 → 미처리 순으로 쌓아 제외·미처리가 아래쪽에 오도록 한다.
   const order: Disposition[] = ["registered", "excluded", "pending"];
   for (const disp of order) {
     for (const t of sel[disp]) {

@@ -36,7 +36,7 @@ describe("disposition (D-13)", () => {
   });
 });
 
-describe("selectForReport 범위/기간 (FR-17)", () => {
+describe("selectForReport 기간/구분 (FR-17, D-13 개정)", () => {
   const tasks = [
     mk({ id: "r", flowStatus: "registered", completedAt: "2026-03-12T09:00:00+09:00" }),
     mk({ id: "e", flowStatus: "excluded", completedAt: "2026-03-15T09:00:00+09:00" }),
@@ -44,27 +44,15 @@ describe("selectForReport 범위/기간 (FR-17)", () => {
     mk({ id: "del", flowStatus: "registered", deleted: true }),
   ];
 
-  it("registeredOnly: 등록완료만, 삭제 제외", () => {
-    const s = selectForReport(tasks, "registeredOnly", "", "");
+  it("범위 구분 없이 registered/excluded/pending 모두 담고 삭제 제외", () => {
+    const s = selectForReport(tasks, "", "");
     expect(s.registered.map((t) => t.id)).toEqual(["r"]);
-    expect(s.excluded).toHaveLength(0);
-    expect(s.pending).toHaveLength(0);
-  });
-
-  it("withExcluded: 등록완료 + 제외", () => {
-    const s = selectForReport(tasks, "withExcluded", "", "");
-    expect(s.registered).toHaveLength(1);
-    expect(s.excluded).toHaveLength(1);
-    expect(s.pending).toHaveLength(0);
-  });
-
-  it("allCompleted: done(미처리)까지 포함", () => {
-    const s = selectForReport(tasks, "allCompleted", "", "");
+    expect(s.excluded.map((t) => t.id)).toEqual(["e"]);
     expect(s.pending.map((t) => t.id)).toEqual(["p"]);
   });
 
   it("기간 필터(완료일 기준)", () => {
-    const s = selectForReport(tasks, "allCompleted", "2026-03-14", "2026-03-18");
+    const s = selectForReport(tasks, "2026-03-14", "2026-03-18");
     expect(s.registered).toHaveLength(0); // 03-12 제외
     expect(s.excluded).toHaveLength(1); // 03-15 포함
     expect(s.pending).toHaveLength(0); // 03-20 제외
@@ -98,39 +86,61 @@ describe("buildMarkdown (FR-18/19, D-13)", () => {
     mk({ title: "대기건", status: "done", flowStatus: null, completedAt: "2026-03-20T09:00:00+09:00" }),
   ];
 
-  it("총계는 등록완료 기준", () => {
-    const m = buildMarkdown(tasks, "registeredOnly", "", "");
+  it("총계는 등록완료 기준, 카테고리 계층·항목 표기", () => {
+    const m = buildMarkdown(tasks, "", "");
     expect(m).toContain("flow 등록 기준, 총 1건");
     expect(m).toContain("## 통합정보망 (1건)");
     expect(m).toContain("### 태양광 (1건)");
     expect(m).toContain("- 03-12 | 과업내용서 (등록 03-05)");
-    expect(m).not.toContain("제외 (모니터링");
   });
 
-  it("withExcluded: 제외 섹션 추가(총계 불포함)", () => {
-    const m = buildMarkdown(tasks, "withExcluded", "", "");
-    expect(m).toContain("총 1건"); // 여전히 등록완료 1건
+  it("제외·미처리는 대상 범위와 무관하게 항상 하단 별도 섹션", () => {
+    const m = buildMarkdown(tasks, "", "");
+    expect(m).toContain("총 1건"); // 등록완료 1건이 KPI 총계
     expect(m).toContain("# 제외 (모니터링, 총 1건)");
-    expect(m).not.toContain("flow 미처리");
+    expect(m).toContain("# flow 미처리 (모니터링, 총 1건)");
+    // 제외·미처리 섹션이 등록완료 본문보다 아래(하단)에 온다
+    expect(m.indexOf("# 제외 (모니터링")).toBeGreaterThan(m.indexOf("## 통합정보망"));
+    expect(m.indexOf("# flow 미처리")).toBeGreaterThan(m.indexOf("# 제외 (모니터링"));
   });
 
-  it("allCompleted: 미처리 섹션까지", () => {
-    const m = buildMarkdown(tasks, "allCompleted", "", "");
-    expect(m).toContain("# flow 미처리 (모니터링, 총 1건)");
+  it("해당 구분이 없으면 그 섹션은 생략", () => {
+    const onlyReg = [mk({ title: "A", flowStatus: "registered" })];
+    const m = buildMarkdown(onlyReg, "", "");
+    expect(m).not.toContain("제외 (모니터링");
+    expect(m).not.toContain("flow 미처리");
   });
 });
 
 describe("buildCsv (FR-19)", () => {
   it("헤더 + BOM + 구분 열", () => {
-    const csv = buildCsv([mk({ title: "과업내용서", category: "통합정보망_태양광" })], "registeredOnly", "", "");
+    const csv = buildCsv([mk({ title: "과업내용서", category: "통합정보망_태양광" })], "", "");
     expect(csv.charCodeAt(0)).toBe(0xfeff); // BOM
     expect(csv).toContain("완료일,구분,대분류,소분류,제목,카테고리,등록일");
     expect(csv).toContain("2026-03-12,등록완료,통합정보망,태양광,과업내용서,통합정보망_태양광,2026-03-05");
   });
 
   it("쉼표 포함 제목은 따옴표 이스케이프", () => {
-    const csv = buildCsv([mk({ title: "A, B" })], "registeredOnly", "", "");
+    const csv = buildCsv([mk({ title: "A, B" })], "", "");
     expect(csv).toContain('"A, B"');
+  });
+
+  it("구분 열로 구분되고 제외·미처리가 등록완료보다 아래쪽 정렬", () => {
+    const csv = buildCsv(
+      [
+        mk({ id: "r", title: "등록건", flowStatus: "registered" }),
+        mk({ id: "e", title: "제외건", flowStatus: "excluded" }),
+        mk({ id: "p", title: "미처리건", status: "done", flowStatus: null }),
+      ],
+      "",
+      "",
+    );
+    expect(csv).toContain(",등록완료,");
+    expect(csv).toContain(",제외,");
+    expect(csv).toContain(",미처리,");
+    // 행 순서: 등록완료 < 제외 < 미처리
+    expect(csv.indexOf("등록건")).toBeLessThan(csv.indexOf("제외건"));
+    expect(csv.indexOf("제외건")).toBeLessThan(csv.indexOf("미처리건"));
   });
 });
 

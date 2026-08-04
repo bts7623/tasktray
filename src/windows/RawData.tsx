@@ -10,7 +10,7 @@ import {
   type Task,
 } from "../api";
 import { parseCategory, restoreToDone } from "../tasks";
-import { buildCsv, buildMarkdown, type ReportRange } from "../report";
+import { buildCsv, buildMarkdown } from "../report";
 
 type StatusFilter = "all" | "active" | "done" | "archived" | "deleted";
 
@@ -37,8 +37,7 @@ export default function RawData() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // 리포트 옵션
-  const [range, setRange] = useState<ReportRange>("registeredOnly");
+  // 리포트 옵션 (완료일 기간만 지정; 제외·미처리는 항상 별도 표기)
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
 
@@ -101,7 +100,7 @@ export default function RawData() {
 
   const exportReport = async (format: "md" | "csv") => {
     const content =
-      format === "md" ? buildMarkdown(tasks, range, start, end) : buildCsv(tasks, range, start, end);
+      format === "md" ? buildMarkdown(tasks, start, end) : buildCsv(tasks, start, end);
     const ext = format;
     const base = `실적리포트_${start || "전체"}_${end || "전체"}.${ext}`;
     try {
@@ -217,14 +216,6 @@ export default function RawData() {
             완료일 종료
             <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
           </label>
-          <label>
-            대상 범위
-            <select value={range} onChange={(e) => setRange(e.target.value as ReportRange)}>
-              <option value="registeredOnly">flow 등록 완료만</option>
-              <option value="withExcluded">제외 포함</option>
-              <option value="allCompleted">전체 완료(미처리 포함)</option>
-            </select>
-          </label>
           <button className="btn" onClick={() => void exportReport("md")}>
             Markdown 저장
           </button>
@@ -233,8 +224,9 @@ export default function RawData() {
           </button>
         </div>
         <p className="rd-note">
-          KPI 총계는 flow 등록완료 기준입니다. 제외·미처리는 별도 모니터링 섹션으로 표기되며
-          총계에 포함되지 않고, 삭제된 항목은 리포트에서 제외됩니다.
+          KPI 총계는 flow 등록완료 기준입니다. 제외·미처리(flow 대기)는 대상 범위와 무관하게
+          항상 하단 별도 섹션(Markdown)·구분 열(CSV)로 표기되며 총계에는 포함되지 않고,
+          삭제된 항목은 리포트에서 제외됩니다.
         </p>
       </div>
     </div>
