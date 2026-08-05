@@ -21,12 +21,17 @@ const FONT_PRESETS: { label: string; size: number }[] = [
   { label: "대", size: 16 },
 ];
 
-// 프리셋 테마(배경/글자 색상). 클릭 시 즉시 적용, 이후 수동 조정도 가능.
+// 프리셋 테마(배경/글자 색상). 클릭 시 즉시 적용, 이후 수동 조정도 가능. 라벨은 2글자.
+// 앞 4개: 파스텔/톤 테마, 뒤 4개: 표·정보 가독성 위주 테마.
 const THEME_PRESETS: { label: string; bg: string; fg: string }[] = [
-  { label: "파스텔 밝은", bg: "#f6f3ec", fg: "#4b4740" },
+  { label: "밝은", bg: "#f6f3ec", fg: "#4b4740" }, // 파스텔 밝은
   { label: "다크", bg: "#1e1e1e", fg: "#e0e0e0" },
-  { label: "보라톤", bg: "#241a33", fg: "#e9ddff" },
-  { label: "초록톤", bg: "#15241b", fg: "#d6ead8" },
+  { label: "보라", bg: "#241a33", fg: "#e9ddff" },
+  { label: "초록", bg: "#15241b", fg: "#d6ead8" },
+  { label: "선명", bg: "#ffffff", fg: "#1a1a1a" }, // 고대비 화이트 — 표 가독성 최상
+  { label: "종이", bg: "#f4ecd8", fg: "#3a3226" }, // 세피아 페이퍼 — 눈 편함
+  { label: "야간", bg: "#0f1115", fg: "#c9d1d9" }, // 딥다크 — 저눈부심 가독
+  { label: "하늘", bg: "#eef4fb", fg: "#24406b" }, // 라이트 블루 — 산뜻+가독
 ];
 
 export default function Settings() {
@@ -90,27 +95,27 @@ export default function Settings() {
 
       {/* 테마 (FR-24 ①②③, FR-25) */}
       <section className="setting-group">
-        <div className="setting-label">화면 테마</div>
-
-        {/* 프리셋: 클릭 시 배경·글자 색상 즉시 적용 */}
-        <div className="theme-presets">
-          {THEME_PRESETS.map((p) => {
-            const active =
-              settings.theme.backgroundColor.toLowerCase() === p.bg &&
-              settings.theme.textColor.toLowerCase() === p.fg;
-            return (
-              <button
-                key={p.label}
-                className={"theme-swatch" + (active ? " active" : "")}
-                style={{ background: p.bg, color: p.fg }}
-                title={`${p.label} 테마 적용`}
-                onClick={() => setTheme({ backgroundColor: p.bg, textColor: p.fg })}
-              >
-                <span className="swatch-a">가</span>
-                <span className="swatch-name">{p.label}</span>
-              </button>
-            );
-          })}
+        {/* 제목 우측에 8개 프리셋 칩을 나열해 세로 공간 절약 */}
+        <div className="theme-header">
+          <div className="setting-label">화면 테마</div>
+          <div className="theme-presets">
+            {THEME_PRESETS.map((p) => {
+              const active =
+                settings.theme.backgroundColor.toLowerCase() === p.bg &&
+                settings.theme.textColor.toLowerCase() === p.fg;
+              return (
+                <button
+                  key={p.label}
+                  className={"theme-chip" + (active ? " active" : "")}
+                  style={{ background: p.bg, color: p.fg }}
+                  title={`${p.label} 테마 적용`}
+                  onClick={() => setTheme({ backgroundColor: p.bg, textColor: p.fg })}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="setting-item">

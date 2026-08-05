@@ -687,46 +687,45 @@ body {
   cursor: pointer;
 }
 
+/* '화면 테마' 제목 + 프리셋 칩을 한 줄에 (세로 공간 절약) */
+.theme-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.theme-header .setting-label {
+  margin-bottom: 0;
+  flex: 0 0 auto;
+}
+
 .theme-presets {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
-.theme-swatch {
-  flex: 1 1 0;
-  min-width: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 6px;
+.theme-chip {
+  padding: 3px 9px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.1s, transform 0.05s;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: transform 0.05s;
 }
 
-.theme-swatch:hover {
+.theme-chip:hover {
   transform: translateY(-1px);
 }
 
-.theme-swatch.active {
+.theme-chip.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
-}
-
-.swatch-a {
-  font-size: 1.1rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.swatch-name {
-  font-size: 0.72rem;
-  opacity: 0.85;
 }
 
 .inline {
