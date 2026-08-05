@@ -22,16 +22,17 @@ const FONT_PRESETS: { label: string; size: number }[] = [
 ];
 
 // 프리셋 테마(배경/글자 색상). 클릭 시 즉시 적용, 이후 수동 조정도 가능. 라벨은 2글자.
-// 앞 4개: 파스텔/톤 테마, 뒤 4개: 표·정보 가독성 위주 테마.
+// 유사색 순(밝은 배경 → 어두운 배경)으로 정렬해 인접 칩끼리 색이 비슷하게 배치.
 const THEME_PRESETS: { label: string; bg: string; fg: string }[] = [
-  { label: "밝은", bg: "#f6f3ec", fg: "#4b4740" }, // 파스텔 밝은
-  { label: "다크", bg: "#1e1e1e", fg: "#e0e0e0" },
-  { label: "보라", bg: "#241a33", fg: "#e9ddff" },
-  { label: "초록", bg: "#15241b", fg: "#d6ead8" },
   { label: "선명", bg: "#ffffff", fg: "#1a1a1a" }, // 고대비 화이트 — 표 가독성 최상
+  { label: "밝은", bg: "#f6f3ec", fg: "#4b4740" }, // 파스텔 밝은
   { label: "종이", bg: "#f4ecd8", fg: "#3a3226" }, // 세피아 페이퍼 — 눈 편함
-  { label: "야간", bg: "#0f1115", fg: "#c9d1d9" }, // 딥다크 — 저눈부심 가독
   { label: "하늘", bg: "#eef4fb", fg: "#24406b" }, // 라이트 블루 — 산뜻+가독
+  { label: "야간", bg: "#0f1115", fg: "#c9d1d9" }, // 딥다크 — 저눈부심 가독
+  { label: "태섭", bg: "#121212", fg: "#ffdd00" }, // 블랙+옐로 고대비
+  { label: "다크", bg: "#1e1e1e", fg: "#e0e0e0" },
+  { label: "초록", bg: "#15241b", fg: "#d6ead8" },
+  { label: "보라", bg: "#241a33", fg: "#e9ddff" },
 ];
 
 export default function Settings() {
