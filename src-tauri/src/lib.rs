@@ -4,6 +4,7 @@
 // M6: 환경설정(테마·창크기·자동실행·제목분리), 설정 즉시 반영(settings-changed 이벤트)
 
 mod commands;
+mod single_instance;
 mod storage;
 mod tray;
 mod window;
@@ -21,6 +22,9 @@ pub struct AppState {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // 단일 인스턴스(NFR-02): 기존 인스턴스를 종료시키고 우리가 락을 확보한다.
+    let instance_lock = single_instance::take_over();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -42,7 +46,11 @@ pub fn run() {
             commands::set_autostart,
             commands::app_version,
         ])
-        .setup(|app| {
+        .setup(move |app| {
+            // 확보한 락 리스너로 이후 새 인스턴스의 종료 신호를 수신한다. (NFR-02)
+            if let Some(listener) = instance_lock {
+                single_instance::serve(app.handle(), listener);
+            }
             tray::create_tray(app.handle())?;
             // 데이터 폴더/파일을 앱이 자동 준비한다(사용자 경로 지정 없음, D-08).
             if let Ok(dir) = storage::app_dir(app.handle()) {
