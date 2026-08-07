@@ -67,9 +67,9 @@ pub fn open_rawdata(app: &AppHandle) {
     show_or_create(app, "rawdata", "TaskTray - 로우데이터", 1000.0, 640.0);
 }
 
-/// [사용 설명서]: 별도 창으로 표시
+/// [사용 설명서]: 별도 창으로 표시. 가로를 넓혀 줄바꿈 없이 읽히도록 한다.
 pub fn open_help(app: &AppHandle) {
-    show_or_create(app, "help", "TaskTray - 사용 설명서", 560.0, 720.0);
+    show_or_create(app, "help", "TaskTray - 사용 설명서", 960.0, 760.0);
 }
 
 /// [TaskTray 제거]: 설치 폴더의 uninstall.exe 를 실행하고 앱을 종료한다.

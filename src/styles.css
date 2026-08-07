@@ -747,8 +747,13 @@ body {
 
 /* ===== 사용 설명서 ===== */
 .help {
-  max-width: 560px;
+  max-width: 920px;
   line-height: 1.6;
+}
+
+/* 각 항목을 줄바꿈 없이 한 줄로 표시(창 폭을 넉넉히 잡아 잘리지 않게). 인용 문단은 그대로 줄바꿈. */
+.help-sec li {
+  white-space: nowrap;
 }
 
 .help-intro {
