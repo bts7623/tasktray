@@ -9,13 +9,44 @@ use tauri::{
 };
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
-use crate::AppState;
+use crate::{storage, AppState};
 
 /// 화면 우측 하단(트레이 인접)에 패널을 배치한다. (UI-02, UI-03)
 pub fn position_panel(app: &AppHandle) {
     if let Some(win) = app.get_webview_window("main") {
         let _ = position_panel_window(&win);
     }
+}
+
+/// 저장된 위치(사용자가 드래그로 옮긴 곳)가 유효하면 복원하고, 없거나 화면 밖이면 기본 위치.
+pub fn restore_or_position(app: &AppHandle) {
+    let s = storage::load_settings(app);
+    if let (Some(x), Some(y)) = (s.window.x, s.window.y) {
+        if point_on_any_monitor(app, x, y) {
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.set_position(PhysicalPosition::new(x, y));
+                return;
+            }
+        }
+    }
+    position_panel(app);
+}
+
+/// 좌표(창 좌상단)가 연결된 모니터 중 하나 안에 있는지 검사(사라진 모니터 위치 방지).
+fn point_on_any_monitor(app: &AppHandle, x: i32, y: i32) -> bool {
+    let Some(win) = app.get_webview_window("main") else {
+        return false;
+    };
+    if let Ok(monitors) = win.available_monitors() {
+        for m in monitors {
+            let p = m.position();
+            let sz = m.size();
+            if x >= p.x && x < p.x + sz.width as i32 && y >= p.y && y < p.y + sz.height as i32 {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 fn position_panel_window(win: &WebviewWindow) -> tauri::Result<()> {
@@ -50,7 +81,7 @@ pub fn toggle_panel(app: &AppHandle) {
         if win.is_visible().unwrap_or(false) {
             let _ = win.hide();
         } else {
-            let _ = position_panel_window(&win);
+            // 재위치하지 않고 마지막 위치(드래그로 옮긴 곳 포함)에서 표시한다.
             let _ = win.show();
             let _ = win.set_focus();
         }
@@ -166,6 +197,29 @@ pub fn handle_window_event(window: &Window, event: &WindowEvent) {
                 if let Some(panel) = app.get_webview_window("main") {
                     let _ = panel.hide();
                 }
+            });
+        }
+        WindowEvent::Moved(pos) if window.label() == "main" => {
+            // 드래그 이동 종료 후(디바운스) 위치를 저장해 재실행 시 복원한다.
+            let app = window.app_handle().clone();
+            let (x, y) = (pos.x, pos.y);
+            let gen = match app.try_state::<AppState>() {
+                Some(state) => state.move_gen.fetch_add(1, Ordering::SeqCst) + 1,
+                None => return,
+            };
+            std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(600));
+                let Some(state) = app.try_state::<AppState>() else {
+                    return;
+                };
+                // 이후 더 최근 이동이 있었으면 이 저장은 건너뛴다(디바운스).
+                if state.move_gen.load(Ordering::SeqCst) != gen {
+                    return;
+                }
+                let mut s = storage::load_settings(&app);
+                s.window.x = Some(x);
+                s.window.y = Some(y);
+                let _ = storage::save_settings(&app, &s); // emit 없이 저장
             });
         }
         WindowEvent::CloseRequested { api, .. } if window.label() == "main" => {

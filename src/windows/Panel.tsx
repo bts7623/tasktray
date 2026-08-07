@@ -201,8 +201,11 @@ export default function Panel() {
 
   return (
     <div className="panel">
-      <header className="panel-head">
-        <span className="panel-title">TaskTray</span>
+      {/* 헤더를 잡고 드래그하면 창을 이동(멀티모니터 포함). data-tauri-drag-region = 네이티브 드래그 */}
+      <header className="panel-head" data-tauri-drag-region>
+        <span className="panel-title" data-tauri-drag-region>
+          TaskTray
+        </span>
         <button
           className={"pin-btn" + (panelPinned ? " on" : "")}
           onClick={() => void togglePinPanel()}

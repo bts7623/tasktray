@@ -9,7 +9,7 @@ mod storage;
 mod tray;
 mod window;
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use tauri::Manager;
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
@@ -22,6 +22,8 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 pub struct AppState {
     pub suppress_panel_hide: AtomicBool,
     pub panel_pinned: AtomicBool,
+    /// 창 이동 저장 디바운스용 세대 카운터.
+    pub move_gen: AtomicU64,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -49,6 +51,7 @@ pub fn run() {
         .manage(AppState {
             suppress_panel_hide: AtomicBool::new(false),
             panel_pinned: AtomicBool::new(false),
+            move_gen: AtomicU64::new(0),
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_settings,
@@ -90,8 +93,8 @@ pub fn run() {
             if let Some(win) = app.get_webview_window("main") {
                 let _ = win.set_always_on_top(settings.always_on_top);
             }
-            // 시작 시 패널은 숨김 상태로 우측 하단에 미리 배치해 둔다.
-            window::position_panel(app.handle());
+            // 시작 시 패널 위치: 저장된 위치가 있으면 복원, 없으면 우측 하단 기본. (드래그 이동 유지)
+            window::restore_or_position(app.handle());
             Ok(())
         })
         .on_window_event(window::handle_window_event)

@@ -63,6 +63,11 @@ pub struct Theme {
 pub struct WindowSize {
     pub width: u32,
     pub height: u32,
+    /// 사용자가 드래그로 옮긴 마지막 위치(물리 좌표). 없으면 우측 하단 기본 위치 사용.
+    #[serde(default)]
+    pub x: Option<i32>,
+    #[serde(default)]
+    pub y: Option<i32>,
 }
 
 /// settings.json 파일 구조. (§6.2)
@@ -100,6 +105,8 @@ impl Default for Settings {
             window: WindowSize {
                 width: 360,
                 height: 720,
+                x: None,
+                y: None,
             },
             auto_start: false,
             title_auto_parse: false,

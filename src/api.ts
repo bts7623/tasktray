@@ -12,6 +12,8 @@ export interface Theme {
 export interface WindowSize {
   width: number;
   height: number;
+  x?: number | null;
+  y?: number | null;
 }
 
 export interface Settings {
