@@ -14,6 +14,7 @@
   --surface-2: color-mix(in srgb, var(--fg) 14%, var(--bg));
   --raise: color-mix(in srgb, var(--fg) 10%, var(--bg));
   --pin-bg: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --panel-opacity: 1;
 }
 
 * {
@@ -38,11 +39,18 @@ body {
   overflow-y: auto;
 }
 
+/* 메인 패널 창은 투명(반투명 효과). .panel 이 불투명도를 조절한다. */
+body.main-window {
+  background: transparent;
+}
+
 /* ===== 메인 패널 ===== */
 .panel {
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: var(--bg);
+  opacity: var(--panel-opacity, 1);
 }
 
 .panel-head {
@@ -61,6 +69,19 @@ body {
 .panel-title {
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.head-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opacity-slider {
+  width: 68px;
+  height: 4px;
+  cursor: pointer;
+  accent-color: var(--accent);
 }
 
 .pin-btn {

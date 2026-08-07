@@ -16,6 +16,15 @@ getSettings()
   .catch(() => {});
 listen<AppSettings>("settings-changed", (e) => applyTheme(e.payload)).catch(() => {});
 
+// 메인 패널 창만 투명 배경(반투명 효과용). 다른 창은 불투명 유지.
+try {
+  if (getCurrentWindow().label === "main") {
+    document.body.classList.add("main-window");
+  }
+} catch {
+  /* 개발 프리뷰 대비 */
+}
+
 // 창 라벨에 따라 렌더링할 화면을 결정한다. (main=패널, settings=환경설정, rawdata=로우데이터)
 function pickView() {
   let label = "main";

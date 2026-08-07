@@ -24,8 +24,8 @@
         "decorations": false,
         "skipTaskbar": true,
         "alwaysOnTop": false,
-        "transparent": false,
-        "shadow": true,
+        "transparent": true,
+        "shadow": false,
         "center": false
       }
     ],

@@ -199,6 +199,21 @@ export default function Panel() {
     }
   };
 
+  // 투명도 슬라이더 (헤더, 압정 좌측). 40~100%. 즉시 반영 + 디바운스 저장.
+  const opacityPct = Math.round((settings?.opacity ?? 1) * 100);
+  const opacityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onOpacity = (pct: number) => {
+    const op = pct / 100;
+    document.documentElement.style.setProperty("--panel-opacity", String(op)); // 즉시 미리보기
+    if (!settings) return;
+    const next: Settings = { ...settings, opacity: op };
+    setSettings(next);
+    if (opacityTimer.current) clearTimeout(opacityTimer.current);
+    opacityTimer.current = setTimeout(() => {
+      saveSettings(next).catch((e) => setError(String(e)));
+    }, 250);
+  };
+
   return (
     <div className="panel">
       {/* 헤더를 잡고 드래그하면 창을 이동(멀티모니터 포함). data-tauri-drag-region = 네이티브 드래그 */}
@@ -206,13 +221,24 @@ export default function Panel() {
         <span className="panel-title" data-tauri-drag-region>
           TaskTray
         </span>
-        <button
-          className={"pin-btn" + (panelPinned ? " on" : "")}
-          onClick={() => void togglePinPanel()}
-          title={panelPinned ? "고정 해제 (바깥 클릭 시 닫힘)" : "항상 위 고정 (바깥 클릭해도 유지)"}
-        >
-          📌
-        </button>
+        <div className="head-tools">
+          <input
+            className="opacity-slider"
+            type="range"
+            min={40}
+            max={100}
+            value={opacityPct}
+            title={`창 투명도 (${opacityPct}%)`}
+            onChange={(e) => onOpacity(Number(e.target.value))}
+          />
+          <button
+            className={"pin-btn" + (panelPinned ? " on" : "")}
+            onClick={() => void togglePinPanel()}
+            title={panelPinned ? "고정 해제 (바깥 클릭 시 닫힘)" : "항상 위 고정 (바깥 클릭해도 유지)"}
+          >
+            📌
+          </button>
+        </div>
       </header>
 
       {phase === "loading" && <div className="empty">불러오는 중…</div>}

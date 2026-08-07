@@ -9,6 +9,8 @@ export function applyTheme(settings: Settings): void {
   const { backgroundColor, textColor, fontSize } = settings.theme;
   root.style.setProperty("--bg", backgroundColor);
   root.style.setProperty("--fg", textColor);
+  // 패널 불투명도(메인 창의 .panel 에만 적용됨). 0.4~1.0.
+  root.style.setProperty("--panel-opacity", String(settings.opacity ?? 1));
   // 루트 폰트 크기(rem 기준). 컴포넌트들은 rem/em 로 스케일된다.
   root.style.fontSize = `${fontSize}px`;
 }

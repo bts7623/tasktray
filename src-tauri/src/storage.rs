@@ -86,10 +86,17 @@ pub struct Settings {
     /// 패널 항상 위 고정(압정) 여부. 기본 Off(UI-08 확장, opt-in).
     #[serde(default)]
     pub always_on_top: bool,
+    /// 패널 불투명도(0.4~1.0). 기본 1.0(불투명). 헤더 슬라이더로 조절.
+    #[serde(default = "default_opacity")]
+    pub opacity: f64,
 }
 
 fn default_shortcut() -> String {
     "Ctrl+Alt+Space".to_string()
+}
+
+fn default_opacity() -> f64 {
+    1.0
 }
 
 impl Default for Settings {
@@ -112,6 +119,7 @@ impl Default for Settings {
             title_auto_parse: false,
             shortcut: default_shortcut(),
             always_on_top: false,
+            opacity: default_opacity(),
         }
     }
 }

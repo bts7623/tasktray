@@ -24,6 +24,7 @@ export interface Settings {
   titleAutoParse: boolean;
   shortcut: string;
   alwaysOnTop: boolean;
+  opacity: number;
 }
 
 export interface Task {
@@ -95,5 +96,6 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     titleAutoParse: false,
     shortcut: "Ctrl+Alt+Space",
     alwaysOnTop: false,
+    opacity: 1,
   };
 }
