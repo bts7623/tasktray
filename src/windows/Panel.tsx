@@ -199,7 +199,7 @@ export default function Panel() {
     }
   };
 
-  // 투명도 슬라이더 (헤더, 압정 좌측). 40~100%. 즉시 반영 + 디바운스 저장.
+  // 투명도 슬라이더 (헤더, 압정 좌측). 10~100%. 즉시 반영 + 디바운스 저장.
   const opacityPct = Math.round((settings?.opacity ?? 1) * 100);
   const opacityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onOpacity = (pct: number) => {
@@ -225,7 +225,7 @@ export default function Panel() {
           <input
             className="opacity-slider"
             type="range"
-            min={40}
+            min={10}
             max={100}
             value={opacityPct}
             title={`창 투명도 (${opacityPct}%)`}
@@ -241,27 +241,29 @@ export default function Panel() {
         </div>
       </header>
 
-      {phase === "loading" && <div className="empty">불러오는 중…</div>}
+      {/* 헤더 아래 내용만 투명도 적용(헤더의 슬라이더·압정은 항상 또렷하게 유지) */}
+      <div className="panel-content">
+        {phase === "loading" && <div className="empty">불러오는 중…</div>}
 
-      {phase === "error" && (
-        <div className="banner banner-error">
-          데이터를 불러오지 못했습니다.
-          <div className="banner-sub">{error}</div>
-        </div>
-      )}
+        {phase === "error" && (
+          <div className="banner banner-error">
+            데이터를 불러오지 못했습니다.
+            <div className="banner-sub">{error}</div>
+          </div>
+        )}
 
-      {phase === "ready" && (
-        <>
-          {warning && <div className="banner banner-warn">{warning}</div>}
-          {error && <div className="banner banner-error">{error}</div>}
+        {phase === "ready" && (
+          <>
+            {warning && <div className="banner banner-warn">{warning}</div>}
+            {error && <div className="banner banner-error">{error}</div>}
 
-          <QuickInput
-            categories={categories}
-            titleAutoParse={settings?.titleAutoParse ?? false}
-            onAdd={addTask}
-          />
+            <QuickInput
+              categories={categories}
+              titleAutoParse={settings?.titleAutoParse ?? false}
+              onAdd={addTask}
+            />
 
-          <div className="lists">
+            <div className="lists">
             {/* ② 오늘 할 일(Pin): 최상단 음영 (D-11) */}
             <section className="section pin-section">
               <div className="section-title" onClick={() => toggleSection("pin")}>
@@ -304,8 +306,9 @@ export default function Panel() {
                 ))}
             </section>
           </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
 
       {/* flow 처리 직후 실행취소 스낵바 (FR-11, D-12) */}
       {undoInfo && (

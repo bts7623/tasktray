@@ -49,6 +49,16 @@ body.main-window {
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: transparent;
+}
+
+/* 헤더 아래 내용만 투명도 적용(헤더의 슬라이더·압정은 항상 또렷) */
+.panel-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
   opacity: var(--panel-opacity, 1);
 }
@@ -60,6 +70,7 @@ body.main-window {
   align-items: center;
   justify-content: space-between;
   cursor: grab;
+  background: var(--bg);
 }
 
 .panel-head:active {
@@ -81,7 +92,8 @@ body.main-window {
   width: 68px;
   height: 4px;
   cursor: pointer;
-  accent-color: var(--accent);
+  /* 슬라이더 색을 테마 글자색에 맞춘다 (사용자 요청) */
+  accent-color: var(--fg);
 }
 
 .pin-btn {
