@@ -199,7 +199,7 @@ export default function Panel() {
     }
   };
 
-  // 투명도 슬라이더 (헤더, 압정 좌측). 10~100%. 즉시 반영 + 디바운스 저장.
+  // 투명도 슬라이더 (헤더, 압정 좌측). 30~100%. 즉시 반영 + 디바운스 저장.
   const opacityPct = Math.round((settings?.opacity ?? 1) * 100);
   const opacityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onOpacity = (pct: number) => {
@@ -225,7 +225,7 @@ export default function Panel() {
           <input
             className="opacity-slider"
             type="range"
-            min={10}
+            min={30}
             max={100}
             value={opacityPct}
             title={`창 투명도 (${opacityPct}%)`}

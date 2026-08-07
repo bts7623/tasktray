@@ -61,7 +61,7 @@ NSIS 설치파일(.exe)을 생성합니다.
 pnpm tauri build
 ```
 
-- 산출물: `src-tauri/target/release/bundle/nsis/TaskTray_1.0.0_x64-setup.exe`
+- 산출물: `src-tauri/target/release/bundle/nsis/TaskTray_1.1.0_x64-setup.exe`
 - **per-user 설치**(관리자 권한 불필요), 시작 메뉴 등록·제거 지원.
 - 미서명 설치파일이라 Windows SmartScreen 경고가 나올 수 있습니다(`추가 정보 → 실행`). 정상입니다.
 - **단일 인스턴스**(NFR-02): 프로그램을 다시 실행하면 기존에 실행 중이던 인스턴스(구버전 포함)가 자동 종료되고 새 인스턴스 1개만 상주합니다.
