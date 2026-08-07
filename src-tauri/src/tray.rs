@@ -9,13 +9,28 @@ use tauri::{
 use crate::window;
 
 pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
-    // 우클릭 컨텍스트 메뉴: [열기] [환경설정] [로우데이터 보기] [종료] (UI-04, 한국어 NFR-06)
+    // 우클릭 컨텍스트 메뉴 (UI-04, 한국어 NFR-06)
     let open_i = MenuItem::with_id(app, "open", "열기", true, None::<&str>)?;
     let settings_i = MenuItem::with_id(app, "settings", "환경설정", true, None::<&str>)?;
     let rawdata_i = MenuItem::with_id(app, "rawdata", "로우데이터 보기", true, None::<&str>)?;
-    let sep = PredefinedMenuItem::separator(app)?;
+    let help_i = MenuItem::with_id(app, "help", "사용 설명서", true, None::<&str>)?;
+    let uninstall_i = MenuItem::with_id(app, "uninstall", "TaskTray 제거", true, None::<&str>)?;
+    let sep1 = PredefinedMenuItem::separator(app)?;
+    let sep2 = PredefinedMenuItem::separator(app)?;
     let quit_i = MenuItem::with_id(app, "quit", "종료", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&open_i, &settings_i, &rawdata_i, &sep, &quit_i])?;
+    let menu = Menu::with_items(
+        app,
+        &[
+            &open_i,
+            &settings_i,
+            &rawdata_i,
+            &sep1,
+            &help_i,
+            &uninstall_i,
+            &sep2,
+            &quit_i,
+        ],
+    )?;
 
     TrayIconBuilder::with_id("tasktray-tray")
         .icon(app.default_window_icon().unwrap().clone())
@@ -27,6 +42,8 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
             "open" => window::toggle_panel(app),
             "settings" => window::open_settings(app),
             "rawdata" => window::open_rawdata(app),
+            "help" => window::open_help(app),
+            "uninstall" => window::run_uninstaller(app),
             // 완전 종료는 트레이 [종료] 로만 수행 (UI-10)
             "quit" => app.exit(0),
             _ => {}

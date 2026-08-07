@@ -7,6 +7,7 @@ use tauri::{
     AppHandle, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window,
     WindowEvent,
 };
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
 use crate::AppState;
 
@@ -64,6 +65,50 @@ pub fn open_settings(app: &AppHandle) {
 /// [로우데이터 보기]: 별도 창으로 표시 (요구사항 결정 D-02)
 pub fn open_rawdata(app: &AppHandle) {
     show_or_create(app, "rawdata", "TaskTray - 로우데이터", 1000.0, 640.0);
+}
+
+/// [사용 설명서]: 별도 창으로 표시
+pub fn open_help(app: &AppHandle) {
+    show_or_create(app, "help", "TaskTray - 사용 설명서", 560.0, 720.0);
+}
+
+/// [TaskTray 제거]: 설치 폴더의 uninstall.exe 를 실행하고 앱을 종료한다.
+/// 설치본이 아니면(개발 실행/단독 실행) 안내 메시지를 보여준다.
+pub fn run_uninstaller(app: &AppHandle) {
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            // NSIS 언인스톨러 탐색(기본 uninstall.exe, 혹은 uninstall*.exe)
+            let uninstaller = find_uninstaller(dir);
+            if let Some(path) = uninstaller {
+                if std::process::Command::new(&path).spawn().is_ok() {
+                    app.exit(0);
+                    return;
+                }
+            }
+        }
+    }
+    app.dialog()
+        .message("설치된 상태에서만 제거할 수 있습니다.\n(개발 실행 또는 단독 실행 파일에서는 제거 기능이 동작하지 않습니다. Windows 설정 → 앱에서 제거하거나 설치본에서 실행해 주세요.)")
+        .title("TaskTray 제거")
+        .kind(MessageDialogKind::Info)
+        .show(|_| {});
+}
+
+fn find_uninstaller(dir: &std::path::Path) -> Option<std::path::PathBuf> {
+    let default = dir.join("uninstall.exe");
+    if default.exists() {
+        return Some(default);
+    }
+    // 파일명이 uninstall 로 시작하는 exe 를 탐색
+    let entries = std::fs::read_dir(dir).ok()?;
+    for e in entries.flatten() {
+        let name = e.file_name();
+        let name = name.to_string_lossy().to_lowercase();
+        if name.starts_with("uninstall") && name.ends_with(".exe") {
+            return Some(e.path());
+        }
+    }
+    None
 }
 
 fn show_or_create(app: &AppHandle, label: &str, title: &str, w: f64, h: f64) {

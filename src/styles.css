@@ -745,6 +745,60 @@ body {
   color: var(--muted);
 }
 
+/* ===== 사용 설명서 ===== */
+.help {
+  max-width: 560px;
+  line-height: 1.6;
+}
+
+.help-intro {
+  font-size: 0.85rem;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 16px;
+}
+
+.help-sec {
+  margin-bottom: 16px;
+}
+
+.help-sec h2 {
+  font-size: 0.92rem;
+  margin: 0 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.help-sec ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.help-sec li {
+  font-size: 0.82rem;
+  margin-bottom: 5px;
+}
+
+.help code {
+  background: var(--surface-2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.9em;
+}
+
+.help-footer {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
 .setting-desc {
   font-size: 0.8rem;
   color: var(--muted);

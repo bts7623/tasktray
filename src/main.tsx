@@ -5,6 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import Panel from "./windows/Panel";
 import Settings from "./windows/Settings";
 import RawData from "./windows/RawData";
+import Help from "./windows/Help";
 import { getSettings, type Settings as AppSettings } from "./api";
 import { applyTheme } from "./theme";
 import "./styles.css";
@@ -28,6 +29,8 @@ function pickView() {
       return <Settings />;
     case "rawdata":
       return <RawData />;
+    case "help":
+      return <Help />;
     default:
       return <Panel />;
   }
