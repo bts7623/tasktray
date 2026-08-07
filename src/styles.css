@@ -48,11 +48,38 @@ body {
 .panel-head {
   padding: 8px 12px;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .panel-title {
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.pin-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  opacity: 0.45;
+  filter: grayscale(1);
+  transition: opacity 0.1s;
+}
+
+.pin-btn:hover {
+  opacity: 0.8;
+}
+
+.pin-btn.on {
+  opacity: 1;
+  filter: none;
+  background: var(--pin-bg);
+  border-color: var(--accent);
 }
 
 .quick-input {
@@ -743,6 +770,35 @@ body {
   margin-top: 8px;
   font-size: 0.75rem;
   color: var(--muted);
+}
+
+.shortcut-view {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+
+.shortcut-capture {
+  width: 170px;
+  padding: 5px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.setting-error {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #ff8a8a;
+  background: color-mix(in srgb, #ff5a5a 15%, transparent);
+  border-radius: 6px;
+  padding: 6px 10px;
 }
 
 /* ===== 사용 설명서 ===== */

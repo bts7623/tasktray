@@ -140,12 +140,17 @@ pub fn handle_window_event(window: &Window, event: &WindowEvent) {
             std::thread::spawn(move || {
                 std::thread::sleep(Duration::from_millis(150));
 
-                // M2+ 네이티브 다이얼로그 표시 중이면 숨기지 않는다.
-                let suppressed = app
+                // 다이얼로그 표시 중(D-03)이거나 압정 고정 상태면 숨기지 않는다.
+                let (suppressed, pinned) = app
                     .try_state::<AppState>()
-                    .map(|s| s.suppress_panel_hide.load(Ordering::SeqCst))
-                    .unwrap_or(false);
-                if suppressed {
+                    .map(|s| {
+                        (
+                            s.suppress_panel_hide.load(Ordering::SeqCst),
+                            s.panel_pinned.load(Ordering::SeqCst),
+                        )
+                    })
+                    .unwrap_or((false, false));
+                if suppressed || pinned {
                     return;
                 }
 

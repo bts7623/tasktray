@@ -2,7 +2,7 @@
 // 변경은 즉시 반영(테마는 로컬 미리보기 + settings-changed 이벤트로 타 창 전파)되고
 // settings.json 에 저장된다(FR-26). 저장은 과도한 디스크 쓰기를 막기 위해 짧게 디바운스.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   appVersion,
   defaultSettings,
@@ -11,9 +11,26 @@ import {
   openDataFolder,
   saveSettings,
   setAutostart,
+  setShortcut,
   type Settings as AppSettings,
 } from "../api";
 import { applyTheme } from "../theme";
+
+/** KeyboardEvent → Tauri 액셀러레이터 문자열. 수식키 없거나 수식키 단독이면 null. */
+function toAccelerator(e: KeyboardEvent): string | null {
+  const mods: string[] = [];
+  if (e.ctrlKey) mods.push("Ctrl");
+  if (e.altKey) mods.push("Alt");
+  if (e.shiftKey) mods.push("Shift");
+  if (e.metaKey) mods.push("Super");
+  let key = e.key;
+  if (["Control", "Alt", "Shift", "Meta", "Dead"].includes(key)) return null;
+  if (key === " ") key = "Space";
+  else if (key.length === 1) key = key.toUpperCase();
+  else if (key.startsWith("Arrow")) key = key.slice(5);
+  if (mods.length === 0) return null; // 수식키 최소 1개 필수
+  return [...mods, key].join("+");
+}
 
 const FONT_PRESETS: { label: string; size: number }[] = [
   { label: "소", size: 12 },
@@ -40,6 +57,8 @@ export default function Settings() {
   const [dataDir, setDataDir] = useState("");
   const [version, setVersion] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [capturing, setCapturing] = useState(false);
+  const [shortcutError, setShortcutError] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -87,6 +106,28 @@ export default function Settings() {
     const next: AppSettings = { ...defaultSettings(), dataPath: settings.dataPath };
     commit(next);
     void setAutostart(false).catch((e) => setError(String(e)));
+    void setShortcut(next.shortcut).catch((e) => setShortcutError(String(e)));
+  };
+
+  // 단축키 캡처: 키 조합을 눌러 즉시 등록 시도. 충돌/실패 시 에러 표시(이전 값 유지).
+  const onCaptureKey = (e: KeyboardEvent) => {
+    e.preventDefault();
+    if (e.key === "Escape") {
+      setCapturing(false);
+      return;
+    }
+    const acc = toAccelerator(e);
+    if (!acc) return; // 수식키 단독 등 — 계속 대기
+    void (async () => {
+      try {
+        await setShortcut(acc); // 등록 성공해야 저장
+        commit({ ...settings, shortcut: acc });
+        setShortcutError(null);
+        setCapturing(false);
+      } catch (err) {
+        setShortcutError(String(err));
+      }
+    })();
   };
 
   return (
@@ -204,6 +245,42 @@ export default function Settings() {
             onChange={(e) => commit({ ...settings, titleAutoParse: e.target.checked })}
           />
         </label>
+      </section>
+
+      {/* 글로벌 단축키 (사용자 확장) */}
+      <section className="setting-group">
+        <div className="setting-label">패널 열기/닫기 단축키</div>
+        <div className="setting-item">
+          <span>현재 단축키</span>
+          <div className="inline">
+            {capturing ? (
+              <input
+                className="shortcut-capture"
+                readOnly
+                value="키 조합을 누르세요…"
+                autoFocus
+                onKeyDown={onCaptureKey}
+                onBlur={() => setCapturing(false)}
+              />
+            ) : (
+              <code className="shortcut-view">{settings.shortcut}</code>
+            )}
+            <button
+              className="btn-sm"
+              onClick={() => {
+                setShortcutError(null);
+                setCapturing((v) => !v);
+              }}
+            >
+              {capturing ? "취소" : "변경"}
+            </button>
+          </div>
+        </div>
+        {shortcutError && <div className="setting-error">{shortcutError}</div>}
+        <p className="setting-desc">
+          Ctrl·Alt·Shift·Win 중 하나 이상 + 키 조합. 다른 프로그램이 이미 쓰는 조합이면 등록되지 않고
+          알림이 표시됩니다. (충돌 시 어떤 프로그램인지 이름까지는 확인 불가)
+        </p>
       </section>
 
       {/* 데이터 저장 폴더 (FR-24 ⑥, D-08) */}

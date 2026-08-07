@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import type { Task } from "../api";
-import { categoryShort, isOverdue } from "../tasks";
+import { categoryColor, categoryShort, isOverdue } from "../tasks";
 
 interface Props {
   task: Task;
@@ -94,11 +94,20 @@ export default function TaskRow({ task, onToggleComplete, onTogglePin, onEdit, o
       <div className="task-main" onDoubleClick={startEdit}>
         <span className={"task-title" + (isDone ? " done" : "")}>{task.title}</span>
         <span className="task-meta">
-          {task.category && (
-            <span className="cat" title={task.category}>
-              {categoryShort(task.category)}
-            </span>
-          )}
+          {task.category &&
+            (() => {
+              // 대분류별 색상: 같은 대분류는 같은 색 (사용자 요청)
+              const c = categoryColor(task.category);
+              return (
+                <span
+                  className="cat"
+                  title={task.category}
+                  style={c ? { background: c.bg, color: c.fg } : undefined}
+                >
+                  {categoryShort(task.category)}
+                </span>
+              );
+            })()}
           {task.dueDate && (
             <span className={"due" + (overdue ? " overdue" : "")} title="종료예정일">
               ~{task.dueDate.slice(5)}

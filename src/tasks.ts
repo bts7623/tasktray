@@ -40,6 +40,23 @@ export function categoryShort(category: string | null): string {
   return minor ?? major;
 }
 
+/** 대분류(첫 _ 앞) 문자열을 안정적인 색상(HSL)으로 매핑.
+ *  같은 대분류 → 같은 색, 다른 대분류 → 다른 색. (사용자 요청)
+ *  칩 배경/글자를 반환하며, 테마와 무관하게 읽히도록 파스텔 라벨 형태로 만든다. */
+export function categoryColor(
+  category: string | null,
+): { bg: string; fg: string } | null {
+  const { major } = parseCategory(category);
+  const key = major.trim();
+  if (key === "") return null;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) % 360;
+  }
+  const hue = ((hash % 360) + 360) % 360;
+  return { bg: `hsl(${hue} 70% 88%)`, fg: `hsl(${hue} 55% 28%)` };
+}
+
 /** 제목 자동분리(FR-04). On일 때 마지막 `_` 뒤=제목, 앞=카테고리.
  *  자동분리 결과가 있으면 그 카테고리를 우선(입력란 카테고리는 무시, D-09). */
 export function resolveTitleCategory(

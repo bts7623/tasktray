@@ -9,7 +9,9 @@ import { listen } from "@tauri-apps/api/event";
 import {
   getSettings,
   loadTasks,
+  saveSettings,
   saveTasks,
+  setPanelPinned,
   type Settings,
   type Task,
 } from "../api";
@@ -183,10 +185,31 @@ export default function Panel() {
   const toggleSection = (key: keyof typeof collapsed) =>
     setCollapsed((c) => ({ ...c, [key]: !c[key] }));
 
+  // 압정(항상 위 고정) 토글 — 켜면 바깥 클릭해도 패널이 사라지지 않는다.
+  const panelPinned = settings?.alwaysOnTop ?? false;
+  const togglePinPanel = async () => {
+    if (!settings) return;
+    const next: Settings = { ...settings, alwaysOnTop: !settings.alwaysOnTop };
+    try {
+      await setPanelPinned(next.alwaysOnTop);
+      setSettings(next);
+      await saveSettings(next);
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
   return (
     <div className="panel">
       <header className="panel-head">
         <span className="panel-title">TaskTray</span>
+        <button
+          className={"pin-btn" + (panelPinned ? " on" : "")}
+          onClick={() => void togglePinPanel()}
+          title={panelPinned ? "고정 해제 (바깥 클릭 시 닫힘)" : "항상 위 고정 (바깥 클릭해도 유지)"}
+        >
+          📌
+        </button>
       </header>
 
       {phase === "loading" && <div className="empty">불러오는 중…</div>}

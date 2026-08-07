@@ -20,6 +20,8 @@ export interface Settings {
   window: WindowSize;
   autoStart: boolean;
   titleAutoParse: boolean;
+  shortcut: string;
+  alwaysOnTop: boolean;
 }
 
 export interface Task {
@@ -74,6 +76,14 @@ export const setAutostart = (enabled: boolean) =>
 /** 앱 버전 문자열 (NFR-04). */
 export const appVersion = () => invoke<string>("app_version");
 
+/** 글로벌 단축키 변경(충돌 시 에러 반환). */
+export const setShortcut = (accelerator: string) =>
+  invoke<void>("set_shortcut", { accelerator });
+
+/** 패널 항상 위 고정(압정) 설정. */
+export const setPanelPinned = (pinned: boolean) =>
+  invoke<void>("set_panel_pinned", { pinned });
+
 /** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
 export function defaultSettings(): Omit<Settings, "dataPath"> {
   return {
@@ -81,5 +91,7 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     window: { width: 360, height: 720 },
     autoStart: false,
     titleAutoParse: false,
+    shortcut: "Ctrl+Alt+Space",
+    alwaysOnTop: false,
   };
 }

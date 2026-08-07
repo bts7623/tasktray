@@ -3,11 +3,15 @@
 // 저장 위치는 앱이 자동 관리한다: %APPDATA%\TaskTray (결정 D-08).
 // 사용자는 경로를 지정하지 않으며, 환경설정의 [저장 폴더 열기]로 접근한다.
 
-use tauri::{AppHandle, Emitter};
+use std::sync::atomic::Ordering;
+
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt;
+use tauri_plugin_global_shortcut::GlobalShortcutExt;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::storage::{self, Settings, TasksFile, TasksLoad};
+use crate::AppState;
 
 /// 앱이 관리하는 데이터 폴더 경로(%APPDATA%\TaskTray) 문자열.
 fn data_dir(app: &AppHandle) -> Result<String, String> {
@@ -84,4 +88,40 @@ pub fn write_text_file(path: String, contents: String) -> Result<(), String> {
 #[tauri::command]
 pub fn app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+/// 글로벌 단축키 변경. 기존 것을 해제하고 새 것을 등록한다.
+/// 이미 다른 프로그램이 점유한 키면 등록이 실패하므로, 실패 시 이전 키로 되돌리고 에러를 반환한다.
+/// (충돌 감지: 어떤 프로그램인지 이름은 알 수 없고 "사용 중" 여부만 판별 가능)
+#[tauri::command]
+pub fn set_shortcut(app: AppHandle, accelerator: String) -> Result<(), String> {
+    let gs = app.global_shortcut();
+    let old = storage::load_settings(&app).shortcut;
+
+    // 기존 단축키 해제(있으면)
+    let _ = gs.unregister(old.as_str());
+
+    match gs.register(accelerator.as_str()) {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            // 실패 → 이전 단축키 복구
+            let _ = gs.register(old.as_str());
+            Err(format!(
+                "이 단축키는 등록할 수 없습니다. 이미 다른 프로그램이 사용 중이거나 형식이 올바르지 않습니다. ({e})"
+            ))
+        }
+    }
+}
+
+/// 패널 항상 위 고정(압정) 설정. always_on_top 적용 + 포커스아웃 숨김 억제 플래그 갱신.
+#[tauri::command]
+pub fn set_panel_pinned(app: AppHandle, pinned: bool) -> Result<(), String> {
+    if let Some(state) = app.try_state::<AppState>() {
+        state.panel_pinned.store(pinned, Ordering::SeqCst);
+    }
+    if let Some(win) = app.get_webview_window("main") {
+        win.set_always_on_top(pinned)
+            .map_err(|e| format!("항상 위 설정 실패: {e}"))?;
+    }
+    Ok(())
 }

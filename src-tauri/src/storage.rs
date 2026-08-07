@@ -75,6 +75,16 @@ pub struct Settings {
     pub window: WindowSize,
     pub auto_start: bool,
     pub title_auto_parse: bool,
+    /// 패널 열기/닫기 글로벌 단축키 (예: "Ctrl+Alt+Space"). 사용자 확장 기능.
+    #[serde(default = "default_shortcut")]
+    pub shortcut: String,
+    /// 패널 항상 위 고정(압정) 여부. 기본 Off(UI-08 확장, opt-in).
+    #[serde(default)]
+    pub always_on_top: bool,
+}
+
+fn default_shortcut() -> String {
+    "Ctrl+Alt+Space".to_string()
 }
 
 impl Default for Settings {
@@ -93,6 +103,8 @@ impl Default for Settings {
             },
             auto_start: false,
             title_auto_parse: false,
+            shortcut: default_shortcut(),
+            always_on_top: false,
         }
     }
 }
