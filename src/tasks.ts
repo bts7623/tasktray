@@ -40,21 +40,67 @@ export function categoryShort(category: string | null): string {
   return minor ?? major;
 }
 
-/** 대분류(첫 _ 앞) 문자열을 안정적인 색상(HSL)으로 매핑.
- *  같은 대분류 → 같은 색, 다른 대분류 → 다른 색. (사용자 요청)
- *  칩 배경/글자를 반환하며, 테마와 무관하게 읽히도록 파스텔 라벨 형태로 만든다. */
+function hslToHex(h: number, s: number, l: number): string {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0,
+    g = 0,
+    b = 0;
+  if (h < 60) [r, g, b] = [c, x, 0];
+  else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x];
+  else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const to = (v: number) =>
+    Math.round((v + m) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${to(r)}${to(g)}${to(b)}`;
+}
+
+/** 배경색(hex) 위에서 읽기 좋은 글자색(어두운/밝은)을 고른다. */
+export function readableText(hex: string): string {
+  const h = hex.replace("#", "");
+  if (h.length < 6) return "#202020";
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b; // 0~255
+  return lum > 150 ? "#20242b" : "#f3f4f6";
+}
+
+/** 대분류 문자열 → 해시 기반 기본 색(hex, 파스텔). */
+export function defaultCategoryHex(major: string): string {
+  let hash = 0;
+  for (let i = 0; i < major.length; i++) {
+    hash = (hash * 31 + major.charCodeAt(i)) % 360;
+  }
+  const hue = ((hash % 360) + 360) % 360;
+  return hslToHex(hue, 0.7, 0.85);
+}
+
+/** 카테고리 칩 색상. 대분류별 사용자 지정색(overrides) 우선, 없으면 해시 기본색. (사용자 요청)
+ *  같은 대분류=같은 색. bg(hex)+대비 글자색+major 반환. */
 export function categoryColor(
   category: string | null,
-): { bg: string; fg: string } | null {
+  overrides?: Record<string, string>,
+): { bg: string; fg: string; major: string } | null {
   const { major } = parseCategory(category);
   const key = major.trim();
   if (key === "") return null;
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    hash = (hash * 31 + key.charCodeAt(i)) % 360;
-  }
-  const hue = ((hash % 360) + 360) % 360;
-  return { bg: `hsl(${hue} 70% 88%)`, fg: `hsl(${hue} 55% 28%)` };
+  const bg = overrides?.[key] ?? defaultCategoryHex(key);
+  return { bg, fg: readableText(bg), major: key };
+}
+
+/** YYYY-MM-DD → 한글 요일 1글자(일~토). 타임존 영향 없이 계산. */
+export function weekdayKo(dateStr: string | null): string {
+  if (!dateStr) return "";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (!y || !m || !d) return "";
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return ["일", "월", "화", "수", "목", "금", "토"][wd] ?? "";
 }
 
 /** 제목 자동분리(FR-04). On일 때 마지막 `_` 뒤=제목, 앞=카테고리.

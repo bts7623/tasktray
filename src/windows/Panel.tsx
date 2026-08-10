@@ -9,6 +9,8 @@ import { listen } from "@tauri-apps/api/event";
 import {
   getSettings,
   loadTasks,
+  openHelp,
+  openSettings,
   saveSettings,
   saveTasks,
   setPanelPinned,
@@ -174,12 +176,29 @@ export default function Panel() {
   const done = doneTasks(tasks);
   const categories = collectCategories(tasks);
 
+  // 카테고리 대분류 색 변경 → 같은 대분류 전부 반영, 디바운스 저장
+  const catColorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onCategoryColor = (major: string, hex: string) => {
+    if (!settings) return;
+    const next: Settings = {
+      ...settings,
+      categoryColors: { ...settings.categoryColors, [major]: hex },
+    };
+    setSettings(next);
+    if (catColorTimer.current) clearTimeout(catColorTimer.current);
+    catColorTimer.current = setTimeout(() => {
+      saveSettings(next).catch((e) => setError(String(e)));
+    }, 250);
+  };
+
   const rowProps = {
     onToggleComplete: toggleComplete,
     onTogglePin: togglePin,
     onEdit: editTask,
     onDelete: (t: Task) => setPendingDelete(t),
     onFlow: processFlow,
+    categoryColors: settings?.categoryColors ?? {},
+    onCategoryColor,
   };
 
   const toggleSection = (key: keyof typeof collapsed) =>
@@ -218,9 +237,14 @@ export default function Panel() {
     <div className="panel">
       {/* 헤더를 잡고 드래그하면 창을 이동(멀티모니터 포함). data-tauri-drag-region = 네이티브 드래그 */}
       <header className="panel-head" data-tauri-drag-region>
-        <span className="panel-title" data-tauri-drag-region>
+        <span
+          className="panel-title"
+          onClick={() => void openHelp()}
+          title="사용 설명서 열기"
+        >
           TaskTray
         </span>
+        {/* 순서: 투명도 > 환경설정 > 팝업 고정 */}
         <div className="head-tools">
           <input
             className="opacity-slider"
@@ -231,6 +255,21 @@ export default function Panel() {
             title={`창 투명도 (${opacityPct}%)`}
             onChange={(e) => onOpacity(Number(e.target.value))}
           />
+          <button className="gear-btn" onClick={() => void openSettings()} title="환경설정">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
           <button
             className={"pin-btn" + (panelPinned ? " on" : "")}
             onClick={() => void togglePinPanel()}

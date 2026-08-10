@@ -1,6 +1,6 @@
 [package]
 name = "tasktray"
-version = "1.1.0"
+version = "1.2.0"
 description = "TaskTray - 개인 업무 스케줄 관리 프로그램"
 authors = ["BTS"]
 edition = "2021"

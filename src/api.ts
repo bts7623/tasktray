@@ -25,6 +25,7 @@ export interface Settings {
   shortcut: string;
   alwaysOnTop: boolean;
   opacity: number;
+  categoryColors: Record<string, string>;
 }
 
 export interface Task {
@@ -87,6 +88,12 @@ export const setShortcut = (accelerator: string) =>
 export const setPanelPinned = (pinned: boolean) =>
   invoke<void>("set_panel_pinned", { pinned });
 
+/** 환경설정 창 열기(헤더 톱니바퀴). */
+export const openSettings = () => invoke<void>("open_settings");
+
+/** 사용 설명서 창 열기(제목 클릭). */
+export const openHelp = () => invoke<void>("open_help");
+
 /** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
 export function defaultSettings(): Omit<Settings, "dataPath"> {
   return {
@@ -97,5 +104,6 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     shortcut: "Ctrl+Alt+Space",
     alwaysOnTop: false,
     opacity: 1,
+    categoryColors: {},
   };
 }

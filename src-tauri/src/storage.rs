@@ -5,6 +5,7 @@
 // - 모든 시각은 항상 KST(+09:00) 고정 기록 (DR-01, 결정 D-06)
 // - tasks.json 파싱 실패 시 백업 로드 시도 후 사용자 알림 (DR-04)
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -89,6 +90,9 @@ pub struct Settings {
     /// 패널 불투명도(0.4~1.0). 기본 1.0(불투명). 헤더 슬라이더로 조절.
     #[serde(default = "default_opacity")]
     pub opacity: f64,
+    /// 카테고리 대분류별 사용자 지정 색상(대분류 → hex). 없으면 해시 기반 자동 색.
+    #[serde(default)]
+    pub category_colors: HashMap<String, String>,
 }
 
 fn default_shortcut() -> String {
@@ -120,6 +124,7 @@ impl Default for Settings {
             shortcut: default_shortcut(),
             always_on_top: false,
             opacity: default_opacity(),
+            category_colors: HashMap::new(),
         }
     }
 }

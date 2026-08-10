@@ -10,6 +10,21 @@ import { getSettings, type Settings as AppSettings } from "./api";
 import { applyTheme } from "./theme";
 import "./styles.css";
 
+// 치명적 오류 시 빈 화면(특히 투명 창)에서 원인을 볼 수 있게 표시한다.
+function showFatal(msg: string) {
+  const root = document.getElementById("root");
+  if (root) {
+    root.innerHTML =
+      '<pre style="margin:0;padding:12px;background:#2a1414;color:#ff9a9a;' +
+      'white-space:pre-wrap;word-break:break-all;font-size:12px;height:100%;overflow:auto">' +
+      "오류: " +
+      msg.replace(/</g, "&lt;") +
+      "</pre>";
+  }
+}
+window.addEventListener("error", (e) => showFatal(`${e.message}\n${e.filename}:${e.lineno}`));
+window.addEventListener("unhandledrejection", (e) => showFatal(String(e.reason)));
+
 // 모든 창 공통: 시작 시 테마 적용 + 설정 변경 즉시 반영 (FR-26)
 getSettings()
   .then(applyTheme)
@@ -45,6 +60,10 @@ function pickView() {
   }
 }
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>{pickView()}</React.StrictMode>,
-);
+try {
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>{pickView()}</React.StrictMode>,
+  );
+} catch (e) {
+  showFatal(String(e));
+}

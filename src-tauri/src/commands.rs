@@ -11,7 +11,7 @@ use tauri_plugin_global_shortcut::GlobalShortcutExt;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::storage::{self, Settings, TasksFile, TasksLoad};
-use crate::AppState;
+use crate::{window, AppState};
 
 /// 앱이 관리하는 데이터 폴더 경로(%APPDATA%\TaskTray) 문자열.
 fn data_dir(app: &AppHandle) -> Result<String, String> {
@@ -88,6 +88,22 @@ pub fn write_text_file(path: String, contents: String) -> Result<(), String> {
 #[tauri::command]
 pub fn app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+/// 환경설정 창 열기(패널 헤더 톱니바퀴 버튼용).
+/// 반드시 async + 메인 스레드 디스패치로 창을 생성한다. 동기 커맨드에서 창을 만들면
+/// 메인 이벤트 루프가 블록되어 앱 전체가 데드락된다.
+#[tauri::command]
+pub async fn open_settings(app: AppHandle) {
+    let a = app.clone();
+    let _ = app.run_on_main_thread(move || window::open_settings(&a));
+}
+
+/// 사용 설명서 창 열기(패널 제목 클릭용). (동일하게 메인 스레드에서 생성)
+#[tauri::command]
+pub async fn open_help(app: AppHandle) {
+    let a = app.clone();
+    let _ = app.run_on_main_thread(move || window::open_help(&a));
 }
 
 /// 글로벌 단축키 변경. 기존 것을 해제하고 새 것을 등록한다.

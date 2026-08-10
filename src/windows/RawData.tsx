@@ -9,7 +9,7 @@ import {
   writeTextFile,
   type Task,
 } from "../api";
-import { nowKst, parseCategory, restoreToDone } from "../tasks";
+import { nowKst, parseCategory, restoreToDone, weekdayKo } from "../tasks";
 import { buildCsv, buildMarkdown } from "../report";
 
 type StatusFilter = "all" | "active" | "done" | "archived" | "deleted";
@@ -182,7 +182,7 @@ export default function RawData() {
                 <td>{t.category ?? ""}</td>
                 <td>{STATUS_LABEL[t.status]}</td>
                 <td>{d(t.createdAt)}</td>
-                <td>{t.dueDate ?? ""}</td>
+                <td>{t.dueDate ? `${t.dueDate}(${weekdayKo(t.dueDate)})` : ""}</td>
                 <td>{d(t.completedAt)}</td>
                 <td>{t.flowStatus ? FLOW_LABEL[t.flowStatus] : ""}</td>
                 <td>{t.deleted ? "삭제" : ""}</td>

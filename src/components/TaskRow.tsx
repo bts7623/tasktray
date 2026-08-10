@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import type { Task } from "../api";
-import { categoryColor, categoryShort, isOverdue } from "../tasks";
+import { categoryColor, categoryShort, isOverdue, weekdayKo } from "../tasks";
 
 interface Props {
   task: Task;
@@ -13,9 +13,20 @@ interface Props {
   onEdit: (task: Task, patch: { title: string; category: string | null; dueDate: string | null }) => void;
   onDelete: (task: Task) => void;
   onFlow?: (task: Task, flow: "registered" | "excluded") => void; // done 행 flow 처리 (FR-10)
+  categoryColors?: Record<string, string>; // 대분류별 지정 색
+  onCategoryColor?: (major: string, hex: string) => void; // 카테고리 색 변경
 }
 
-export default function TaskRow({ task, onToggleComplete, onTogglePin, onEdit, onDelete, onFlow }: Props) {
+export default function TaskRow({
+  task,
+  onToggleComplete,
+  onTogglePin,
+  onEdit,
+  onDelete,
+  onFlow,
+  categoryColors,
+  onCategoryColor,
+}: Props) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [category, setCategory] = useState(task.category ?? "");
@@ -96,21 +107,30 @@ export default function TaskRow({ task, onToggleComplete, onTogglePin, onEdit, o
         <span className="task-meta">
           {task.category &&
             (() => {
-              // 대분류별 색상: 같은 대분류는 같은 색 (사용자 요청)
-              const c = categoryColor(task.category);
+              // 대분류별 색상: 같은 대분류는 같은 색. 칩 클릭 시 색상 변경 (사용자 요청)
+              const c = categoryColor(task.category, categoryColors);
+              if (!c) return null;
               return (
-                <span
+                <label
                   className="cat"
-                  title={task.category}
-                  style={c ? { background: c.bg, color: c.fg } : undefined}
+                  title={`${task.category} · 클릭하여 색상 변경`}
+                  style={{ background: c.bg, color: c.fg }}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
                 >
                   {categoryShort(task.category)}
-                </span>
+                  <input
+                    className="cat-color-input"
+                    type="color"
+                    value={c.bg}
+                    onChange={(e) => onCategoryColor?.(c.major, e.target.value)}
+                  />
+                </label>
               );
             })()}
           {task.dueDate && (
             <span className={"due" + (overdue ? " overdue" : "")} title="종료예정일">
-              ~{task.dueDate.slice(5)}
+              ~{task.dueDate.slice(5)}({weekdayKo(task.dueDate)})
             </span>
           )}
         </span>

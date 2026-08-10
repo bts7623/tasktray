@@ -65,6 +65,8 @@ pub fn run() {
             commands::app_version,
             commands::set_shortcut,
             commands::set_panel_pinned,
+            commands::open_settings,
+            commands::open_help,
         ])
         .setup(move |app| {
             // 확보한 락 리스너로 이후 새 인스턴스의 종료 신호를 수신한다. (NFR-02)

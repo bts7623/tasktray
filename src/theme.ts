@@ -4,11 +4,23 @@
 
 import type { Settings } from "./api";
 
+/** 배경색이 밝은지 판정(달력 아이콘 등 네이티브 위젯 color-scheme 결정용). */
+function isLightBg(hex: string): boolean {
+  const h = hex.replace("#", "");
+  if (h.length < 6) return false;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150;
+}
+
 export function applyTheme(settings: Settings): void {
   const root = document.documentElement;
   const { backgroundColor, textColor, fontSize } = settings.theme;
   root.style.setProperty("--bg", backgroundColor);
   root.style.setProperty("--fg", textColor);
+  // 날짜 입력 달력 아이콘 등 네이티브 위젯이 배경/글자색에 맞게 보이도록 color-scheme 설정.
+  root.style.setProperty("--calendar-scheme", isLightBg(backgroundColor) ? "light" : "dark");
   // 패널 불투명도(메인 창의 .panel 에만 적용됨). 0.4~1.0.
   root.style.setProperty("--panel-opacity", String(settings.opacity ?? 1));
   // 루트 폰트 크기(rem 기준). 컴포넌트들은 rem/em 로 스케일된다.
