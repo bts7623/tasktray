@@ -142,21 +142,29 @@ export function isOverdue(dueDate: string | null): boolean {
 
 const notDeleted = (t: Task) => !t.deleted;
 
-/** 카테고리 포함 문자열 기준 가나다(ko) 비교 키. */
-const koKey = (t: Task) => `${t.category ?? ""} ${t.title}`;
+/** 대분류(첫 _ 앞). 카테고리 없으면 빈 문자열. */
+const majorOf = (t: Task) => (t.category ? parseCategory(t.category).major : "");
 
-/** 오늘 할 일(Pin): pinned && active. 카테고리 포함 가나다순. (D-10, D-11) */
+/** 정렬 비교: 카테고리 1depth(대분류) 가나다 → task명 가나다. (사용자 요청)
+ *  소분류는 1차 정렬에 영향을 주지 않는다(대분류 안에서는 제목 순). */
+function byCategoryThenTitle(a: Task, b: Task): number {
+  const c = majorOf(a).localeCompare(majorOf(b), "ko");
+  if (c !== 0) return c;
+  return a.title.localeCompare(b.title, "ko");
+}
+
+/** 오늘 할 일(Pin): pinned && active. 대분류 가나다 → 제목 가나다. (D-10, D-11) */
 export function pinnedTasks(tasks: Task[]): Task[] {
   return tasks
     .filter((t) => notDeleted(t) && t.status === "active" && t.pinned)
-    .sort((a, b) => koKey(a).localeCompare(koKey(b), "ko"));
+    .sort(byCategoryThenTitle);
 }
 
-/** 진행 중(active, 비Pin): 등록일 최신순. (FR-12) */
+/** 진행 중(active, 비Pin): 대분류 가나다 → 제목 가나다. (FR-12 변경) */
 export function activeTasks(tasks: Task[]): Task[] {
   return tasks
     .filter((t) => notDeleted(t) && t.status === "active" && !t.pinned)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort(byCategoryThenTitle);
 }
 
 /** flow 등록 대기(done): 완료일 최신순. (FR-12) */

@@ -103,22 +103,26 @@ describe("isOverdue (FR-07)", () => {
 
 describe("영역 필터/정렬 (FR-12/D-10/D-11)", () => {
   const tasks = [
-    mk({ id: "p1", title: "나중", category: "B_b", status: "active", pinned: true }),
-    mk({ id: "p2", title: "먼저", category: "A_a", status: "active", pinned: true }),
-    mk({ id: "a1", status: "active", pinned: false, createdAt: "2026-07-01T09:00:00+09:00" }),
-    mk({ id: "a2", status: "active", pinned: false, createdAt: "2026-07-05T09:00:00+09:00" }),
+    // Pin: 대분류(통합정보망/기관정보화) → 제목 순. 소분류는 순서에 영향 없음
+    mk({ id: "p1", title: "가", category: "통합정보망_태양광", status: "active", pinned: true }),
+    mk({ id: "p2", title: "나", category: "통합정보망_감자", status: "active", pinned: true }),
+    mk({ id: "p3", title: "다", category: "기관정보화_그룹웨어", status: "active", pinned: true }),
+    // active: 대분류 → 제목 순
+    mk({ id: "a1", title: "다", category: "나_x", status: "active", pinned: false }),
+    mk({ id: "a2", title: "가", category: "가_y", status: "active", pinned: false }),
     mk({ id: "d1", status: "done", completedAt: "2026-07-02T09:00:00+09:00" }),
     mk({ id: "d2", status: "done", completedAt: "2026-07-06T09:00:00+09:00" }),
     mk({ id: "x", status: "active", pinned: true, deleted: true }),
   ];
 
-  it("Pin: pinned&active, 카테고리 포함 가나다순, 삭제 제외 (D-11)", () => {
-    expect(pinnedTasks(tasks).map((t) => t.id)).toEqual(["p2", "p1"]);
+  it("Pin: 대분류 가나다 → 제목 가나다(소분류 무시), 삭제 제외 (D-11 변경)", () => {
+    // 기관정보화 먼저, 그다음 통합정보망 내에서 제목 가(p1) < 나(p2)
+    expect(pinnedTasks(tasks).map((t) => t.id)).toEqual(["p3", "p1", "p2"]);
   });
-  it("active: active&!pinned, 등록일 최신순", () => {
+  it("active: 대분류 가나다 → 제목 가나다 (FR-12 변경)", () => {
     expect(activeTasks(tasks).map((t) => t.id)).toEqual(["a2", "a1"]);
   });
-  it("done: 완료일 최신순", () => {
+  it("done: 완료일 최신순 (변경 없음)", () => {
     expect(doneTasks(tasks).map((t) => t.id)).toEqual(["d2", "d1"]);
   });
 });
