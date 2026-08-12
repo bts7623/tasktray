@@ -30,6 +30,10 @@ pub struct Task {
     pub flow_processed_at: Option<String>,
     pub deleted: bool,
     pub deleted_at: Option<String>,
+    /// 마지막 변경 시각(KST). 동기화 충돌 판정용. schemaVersion 2에서 추가.
+    /// 기존(v1) 파일은 마이그레이션에서 채운다. (D-22 — 동기화 위해 D-04 스키마 고정 개정)
+    #[serde(default)]
+    pub updated_at: String,
 }
 
 /// tasks.json 파일 전체 구조. (§6.1)
@@ -49,7 +53,7 @@ impl Default for TasksFile {
     }
 }
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+pub const CURRENT_SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -223,10 +227,20 @@ pub fn save_settings(app: &AppHandle, settings: &Settings) -> Result<(), String>
 
 /// 스키마 버전에 따른 마이그레이션. (DR-03) 현재는 v1 만 존재하므로 그대로 반환.
 fn migrate(mut file: TasksFile) -> TasksFile {
-    // 향후 schemaVersion 상승 시 여기서 단계별 변환을 수행한다.
-    if file.schema_version == 0 {
-        file.schema_version = CURRENT_SCHEMA_VERSION;
+    // v1 → v2: updatedAt 도입. 기존 Task에 값이 없으면 가장 최근 알려진 시각으로 채운다.
+    if file.schema_version < 2 {
+        for t in &mut file.tasks {
+            if t.updated_at.is_empty() {
+                t.updated_at = t
+                    .flow_processed_at
+                    .clone()
+                    .or_else(|| t.deleted_at.clone())
+                    .or_else(|| t.completed_at.clone())
+                    .unwrap_or_else(|| t.created_at.clone());
+            }
+        }
     }
+    file.schema_version = CURRENT_SCHEMA_VERSION;
     file
 }
 
@@ -333,12 +347,31 @@ mod tests {
             flow_processed_at: None,
             deleted: false,
             deleted_at: None,
+            updated_at: now_kst(),
         }
     }
 
     #[test]
     fn now_kst_has_fixed_offset() {
         assert!(now_kst().ends_with("+09:00"), "KST 오프셋 고정 (DR-01/D-06)");
+    }
+
+    #[test]
+    fn migrate_v1_fills_updated_at() {
+        // v1(updatedAt 없음) tasks.json 을 직접 써두고 로드 시 마이그레이션되는지 검증
+        let dir = temp_dir("migrate_v1");
+        let v1 = r#"{"schemaVersion":1,"tasks":[
+            {"id":"a","title":"t","category":null,"status":"done","pinned":false,
+             "dueDate":null,"createdAt":"2026-01-01T09:00:00+09:00",
+             "completedAt":"2026-02-02T09:00:00+09:00","flowStatus":null,
+             "flowProcessedAt":null,"deleted":false,"deletedAt":null}
+        ]}"#;
+        fs::write(tasks_path_in(&dir), v1).unwrap();
+
+        let loaded = load_tasks(&dir).unwrap();
+        assert_eq!(loaded.file.schema_version, CURRENT_SCHEMA_VERSION);
+        // updatedAt 이 completedAt(가장 최근 알려진 시각)으로 채워짐
+        assert_eq!(loaded.file.tasks[0].updated_at, "2026-02-02T09:00:00+09:00");
     }
 
     #[test]

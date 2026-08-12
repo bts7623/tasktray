@@ -18,3 +18,7 @@ Thumbs.db
 
 # Claude Code 로컬 설정
 .claude/settings.local.json
+
+# 환경변수(Supabase 키 등) — 로컬 전용
+.env.local
+.env*.local

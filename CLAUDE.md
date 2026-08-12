@@ -69,6 +69,8 @@
 
 - **D-20 (편의 개선 묶음, 사용자 요청)** : ① 패널 헤더 우측에 **환경설정(톱니바퀴 SVG, 테마 글자색 연동)** 버튼 추가(순서: 투명도 슬라이더 › 설정 › 압정). ② **제목 'TaskTray' 클릭 → 사용 설명서** 창. ③ **카테고리 칩 클릭 → 색상 선택**, 같은 대분류 일괄 적용(`settings.categoryColors`에 대분류→hex 저장). ④ 날짜 입력 **달력 아이콘이 테마에 맞게 보이도록** `--calendar-scheme`(배경 밝기 기반 light/dark) 적용. ⑤ 종료예정일 표기에 **요일(괄호)** 추가. ⚠️ 창 열기 커맨드(`open_settings`/`open_help`)는 **반드시 async + `run_on_main_thread`** — 동기 커맨드로 창을 만들면 메인 이벤트 루프 데드락으로 앱 전체가 멈춘다(이번에 발생·수정). main.tsx에 치명 오류 표시용 오버레이 추가(투명 창에서 빈 화면 방지·디버그).
 
+- **D-22 (모바일·동기화 착수, 사용자 요청)** : 중기 목표로 **모바일 지원 + 다기기 동기화**. 스택 = **Supabase(백엔드 DB) + 데스크톱은 로컬 우선+동기화 + 로그인 이메일/비밀번호 + 향후 PWA로 Android/Win/Mac/iOS**. 이를 위해 **schemaVersion 2로 올리고 Task에 `updatedAt` 추가**(동기화 충돌 판정용) — 기존 D-04(스키마 문자 그대로 유지)를 이 목적에 한해 개정. v1 파일은 마이그레이션에서 `updatedAt`을 flowProcessedAt/deletedAt/completedAt/createdAt 중 최신으로 채움. 모든 변경은 `touch()`로 updatedAt 갱신. Supabase 테이블·RLS는 `supabase/schema.sql`, 키는 `.env.local`(git 제외). ⚠️ 이 방향은 요구사항 NFR-05(완전 오프라인·외부 통신 없음)를 의식적으로 완화하는 것(사용자 승인).
+
 ## 4. 미확정/질문 대기 항목
 
 > 이 항목들은 **답변 전까지 임의 구현 금지**. 해당 마일스톤 착수 시 반드시 재확인한다.

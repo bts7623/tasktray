@@ -28,6 +28,7 @@ import {
   replaceTask,
   resolveTitleCategory,
   restoreToDone,
+  touch,
 } from "../tasks";
 import QuickInput from "../components/QuickInput";
 import TaskRow from "../components/TaskRow";
@@ -130,27 +131,27 @@ export default function Panel() {
   const toggleComplete = (task: Task) => {
     const updated: Task =
       task.status === "active"
-        ? { ...task, status: "done", completedAt: nowKst() } // 완료 (FR-09)
-        : { ...task, status: "active", completedAt: null }; // 완료 취소 (FR-11)
+        ? touch({ ...task, status: "done", completedAt: nowKst() }) // 완료 (FR-09)
+        : touch({ ...task, status: "active", completedAt: null }); // 완료 취소 (FR-11)
     commit(replaceTask(tasks, updated));
   };
 
   const togglePin = (task: Task) => {
-    commit(replaceTask(tasks, { ...task, pinned: !task.pinned })); // FR-08
+    commit(replaceTask(tasks, touch({ ...task, pinned: !task.pinned }))); // FR-08
   };
 
   const editTask = (
     task: Task,
     patch: { title: string; category: string | null; dueDate: string | null },
   ) => {
-    commit(replaceTask(tasks, { ...task, ...patch })); // FR-05
+    commit(replaceTask(tasks, touch({ ...task, ...patch }))); // FR-05
   };
 
   const confirmDelete = () => {
     if (!pendingDelete) return;
     // soft delete (FR-06): deleted=true, deletedAt 기록
     commit(
-      replaceTask(tasks, { ...pendingDelete, deleted: true, deletedAt: nowKst() }),
+      replaceTask(tasks, touch({ ...pendingDelete, deleted: true, deletedAt: nowKst() })),
     );
     setPendingDelete(null);
   };

@@ -41,6 +41,7 @@ export interface Task {
   flowProcessedAt: string | null;
   deleted: boolean;
   deletedAt: string | null;
+  updatedAt: string; // 마지막 변경 시각(KST). 동기화 충돌 판정용 (schema v2)
 }
 
 export interface TasksFile {

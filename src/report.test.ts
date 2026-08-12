@@ -23,6 +23,7 @@ function mk(p: Partial<Task>): Task {
     flowProcessedAt: p.flowProcessedAt ?? "2026-03-13T09:00:00+09:00",
     deleted: p.deleted ?? false,
     deletedAt: p.deletedAt ?? null,
+    updatedAt: p.updatedAt ?? "2026-03-13T09:00:00+09:00",
   };
 }
 

@@ -177,8 +177,14 @@ export function doneTasks(tasks: Task[]): Task[] {
 
 // ===== 불변 업데이트 헬퍼 (반환값을 저장) =====
 
-/** 새 Task 생성(active). createdAt=KST. */
+/** 변경 시각 갱신. 모든 수정은 이걸 거쳐 updatedAt 을 최신화한다(동기화용). */
+export function touch(task: Task): Task {
+  return { ...task, updatedAt: nowKst() };
+}
+
+/** 새 Task 생성(active). createdAt=updatedAt=KST. */
 export function createTask(title: string, category: string | null, dueDate: string | null): Task {
+  const now = nowKst();
   return {
     id: newId(),
     title,
@@ -186,12 +192,13 @@ export function createTask(title: string, category: string | null, dueDate: stri
     status: "active",
     pinned: false,
     dueDate: dueDate && dueDate !== "" ? dueDate : null,
-    createdAt: nowKst(),
+    createdAt: now,
     completedAt: null,
     flowStatus: null,
     flowProcessedAt: null,
     deleted: false,
     deletedAt: null,
+    updatedAt: now,
   };
 }
 
@@ -206,6 +213,7 @@ export function archiveTask(task: Task, flow: "registered" | "excluded"): Task {
     status: "archived",
     flowStatus: flow,
     flowProcessedAt: nowKst(),
+    updatedAt: nowKst(),
   };
 }
 
@@ -216,5 +224,6 @@ export function restoreToDone(task: Task): Task {
     status: "done",
     flowStatus: null,
     flowProcessedAt: null,
+    updatedAt: nowKst(),
   };
 }
