@@ -142,25 +142,26 @@ export function isOverdue(dueDate: string | null): boolean {
 
 const notDeleted = (t: Task) => !t.deleted;
 
-/** 대분류(첫 _ 앞). 카테고리 없으면 빈 문자열. */
-const majorOf = (t: Task) => (t.category ? parseCategory(t.category).major : "");
-
-/** 정렬 비교: 카테고리 1depth(대분류) 가나다 → task명 가나다. (사용자 요청)
- *  소분류는 1차 정렬에 영향을 주지 않는다(대분류 안에서는 제목 순). */
+/** 정렬 비교: 카테고리 대분류(1depth) 가나다 → 소분류(2depth) 가나다 → task명 가나다. (사용자 요청)
+ *  같은 대분류 안에서는 소분류끼리 묶인 뒤 제목순. 소분류 없는 항목은 앞에 온다. */
 function byCategoryThenTitle(a: Task, b: Task): number {
-  const c = majorOf(a).localeCompare(majorOf(b), "ko");
-  if (c !== 0) return c;
+  const pa = parseCategory(a.category);
+  const pb = parseCategory(b.category);
+  const cm = pa.major.localeCompare(pb.major, "ko");
+  if (cm !== 0) return cm;
+  const cs = (pa.minor ?? "").localeCompare(pb.minor ?? "", "ko");
+  if (cs !== 0) return cs;
   return a.title.localeCompare(b.title, "ko");
 }
 
-/** 오늘 할 일(Pin): pinned && active. 대분류 가나다 → 제목 가나다. (D-10, D-11) */
+/** 오늘 할 일(Pin): pinned && active. 대분류 → 소분류 → 제목. (D-10, D-11, D-21) */
 export function pinnedTasks(tasks: Task[]): Task[] {
   return tasks
     .filter((t) => notDeleted(t) && t.status === "active" && t.pinned)
     .sort(byCategoryThenTitle);
 }
 
-/** 진행 중(active, 비Pin): 대분류 가나다 → 제목 가나다. (FR-12 변경) */
+/** 진행 중(active, 비Pin): 대분류 → 소분류 → 제목. (FR-12 변경) */
 export function activeTasks(tasks: Task[]): Task[] {
   return tasks
     .filter((t) => notDeleted(t) && t.status === "active" && !t.pinned)

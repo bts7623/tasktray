@@ -115,11 +115,11 @@ describe("영역 필터/정렬 (FR-12/D-10/D-11)", () => {
     mk({ id: "x", status: "active", pinned: true, deleted: true }),
   ];
 
-  it("Pin: 대분류 가나다 → 제목 가나다(소분류 무시), 삭제 제외 (D-11 변경)", () => {
-    // 기관정보화 먼저, 그다음 통합정보망 내에서 제목 가(p1) < 나(p2)
-    expect(pinnedTasks(tasks).map((t) => t.id)).toEqual(["p3", "p1", "p2"]);
+  it("Pin: 대분류 → 소분류 → 제목, 삭제 제외 (D-21)", () => {
+    // 기관정보화 먼저, 그다음 통합정보망 내에서 소분류 감자(p2) < 태양광(p1)
+    expect(pinnedTasks(tasks).map((t) => t.id)).toEqual(["p3", "p2", "p1"]);
   });
-  it("active: 대분류 가나다 → 제목 가나다 (FR-12 변경)", () => {
+  it("active: 대분류 → 소분류 → 제목 (FR-12 변경)", () => {
     expect(activeTasks(tasks).map((t) => t.id)).toEqual(["a2", "a1"]);
   });
   it("done: 완료일 최신순 (변경 없음)", () => {
