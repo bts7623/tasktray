@@ -850,6 +850,43 @@ body.main-window {
   color: var(--muted);
 }
 
+/* 클라우드 동기화 */
+.sync-login {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.sync-login input {
+  flex: 1 1 140px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.sync-msg {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.sync-msg.ok {
+  color: #8fe0a6;
+  background: color-mix(in srgb, #34c759 15%, transparent);
+}
+
+.sync-msg.err {
+  color: #ff8a8a;
+  background: color-mix(in srgb, #ff5a5a 15%, transparent);
+}
+
 .shortcut-view {
   background: var(--surface-2);
   border: 1px solid var(--border);

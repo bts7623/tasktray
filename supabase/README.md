@@ -26,7 +26,7 @@
 
 ## 4. 앱에 키 연결
 
-프로젝트 루트에 `.env.local` 파일을 만들고 아래를 채웁니다([`.env.example`](../.env.example) 참고):
+프로젝트 루트의 `.env.local` 파일에 아래 값을 채웁니다:
 
 ```
 VITE_SUPABASE_URL=https://xxxx.supabase.co
