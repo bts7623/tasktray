@@ -1,8 +1,11 @@
 // 환경설정의 '클라우드 동기화' 섹션. 이메일/비밀번호 로그인 + 수동 동기화. (D-22)
 
 import { useEffect, useState } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { supabase, supabaseConfigured } from "../supabase";
 import { syncNow } from "../sync/sync";
+
+const WEB_URL = "https://tasktray.vercel.app";
 
 export default function SyncSettings() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -12,6 +15,7 @@ export default function SyncSettings() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -61,6 +65,19 @@ export default function SyncSettings() {
     setError(null);
   };
 
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(WEB_URL);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* 클립보드 접근 실패는 무시 */
+    }
+  };
+  const openLink = () => {
+    void openUrl(WEB_URL).catch(() => {});
+  };
+
   const doSync = async () => {
     if (!userId) return;
     setError(null);
@@ -79,6 +96,19 @@ export default function SyncSettings() {
   return (
     <section className="setting-group">
       <div className="setting-label">클라우드 동기화</div>
+
+      <div className="sync-weblink">
+        <span className="sync-weblink-desc">웹·모바일 접속 주소 (폰에서 열어 홈 화면에 추가)</span>
+        <div className="sync-weblink-row">
+          <code className="sync-weblink-url">{WEB_URL}</code>
+          <button className="btn-sm" onClick={openLink}>
+            열기
+          </button>
+          <button className="btn-sm ghost" onClick={() => void copyLink()}>
+            {copied ? "복사됨" : "복사"}
+          </button>
+        </div>
+      </div>
 
       {userEmail ? (
         <>

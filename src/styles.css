@@ -851,6 +851,39 @@ body.main-window {
 }
 
 /* 클라우드 동기화 */
+.sync-weblink {
+  margin-bottom: 10px;
+}
+
+.sync-weblink-desc {
+  display: block;
+  font-size: 0.76rem;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+
+.sync-weblink-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.sync-weblink-url {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sync-login {
   display: flex;
   flex-wrap: wrap;
