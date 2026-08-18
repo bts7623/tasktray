@@ -21,6 +21,9 @@ import type { Task } from "../api";
 import QuickInput from "../components/QuickInput";
 import TaskRow from "../components/TaskRow";
 import Snackbar from "../components/Snackbar";
+import FeedbackForm from "../feedback/FeedbackForm";
+import FeedbackAdmin from "../feedback/FeedbackAdmin";
+import { APP_VERSION } from "../version";
 
 export default function WebApp() {
   const [session, setSession] = useState<Session | null>(null);
@@ -121,6 +124,8 @@ function Board({ session }: { session: Session }) {
   const [undoInfo, setUndoInfo] = useState<{ prev: Task; message: string } | null>(null);
   const [collapsed, setCollapsed] = useState({ pin: false, active: false, done: false });
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>(loadCatColors());
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   // silent=true 면 실패해도 화면을 깨지 않음(백그라운드 자동 갱신용)
   const reload = async (silent = false) => {
@@ -244,9 +249,14 @@ function Board({ session }: { session: Session }) {
     <div className="webapp">
       <header className="web-head">
         <span className="panel-title">TaskTray</span>
-        <button className="btn-sm ghost" onClick={() => void supabase?.auth.signOut()}>
-          로그아웃
-        </button>
+        <div className="inline">
+          <button className="btn-sm ghost" onClick={() => setShowFeedback(true)}>
+            피드백
+          </button>
+          <button className="btn-sm ghost" onClick={() => void supabase?.auth.signOut()}>
+            로그아웃
+          </button>
+        </div>
       </header>
 
       <div className="web-body">
@@ -294,6 +304,33 @@ function Board({ session }: { session: Session }) {
             ))}
         </section>
       </div>
+
+      {showFeedback && (
+        <div className="overlay" onClick={() => setShowFeedback(false)}>
+          <div className="web-card fb-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="fb-modal-head">
+              <button className="btn-sm ghost" onClick={() => setShowFeedback(false)}>
+                닫기
+              </button>
+            </div>
+            <FeedbackForm
+              platform="web"
+              appVersion={APP_VERSION}
+              onOpenAdmin={() => {
+                setShowFeedback(false);
+                setShowAdmin(true);
+              }}
+            />
+          </div>
+        </div>
+      )}
+      {showAdmin && (
+        <div className="overlay" onClick={() => setShowAdmin(false)}>
+          <div className="web-admin" onClick={(e) => e.stopPropagation()}>
+            <FeedbackAdmin onClose={() => setShowAdmin(false)} />
+          </div>
+        </div>
+      )}
 
       {undoInfo && (
         <Snackbar message={undoInfo.message} onUndo={undoArchive} onDismiss={() => setUndoInfo(null)} />

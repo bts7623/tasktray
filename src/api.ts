@@ -95,6 +95,9 @@ export const openSettings = () => invoke<void>("open_settings");
 /** 사용 설명서 창 열기(제목 클릭). */
 export const openHelp = () => invoke<void>("open_help");
 
+/** 피드백 관리 창 열기(관리자, D-23). */
+export const openFeedback = () => invoke<void>("open_feedback");
+
 /** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
 export function defaultSettings(): Omit<Settings, "dataPath"> {
   return {

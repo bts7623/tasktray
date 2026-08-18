@@ -920,6 +920,125 @@ body.main-window {
   background: color-mix(in srgb, #ff5a5a 15%, transparent);
 }
 
+/* ── 사용자 피드백 (D-23) ────────────────────────────── */
+.fb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fb-kinds {
+  display: flex;
+  gap: 6px;
+}
+
+.fb-text {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.fb-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 관리자 화면 */
+.feedback-admin {
+  padding: 16px;
+}
+
+.fb-admin-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fb-admin-head h1 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.fb-table-wrap {
+  overflow-x: auto;
+}
+
+.fb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.fb-table th,
+.fb-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 7px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.fb-table th {
+  font-weight: 600;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.fb-when,
+.fb-ver {
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.fb-msg {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 220px;
+}
+
+.fb-who {
+  word-break: break-all;
+  max-width: 160px;
+}
+
+.fb-table tr.fb-done {
+  opacity: 0.55;
+}
+
+/* 웹 오버레이(피드백 폼·관리자) */
+.fb-modal {
+  max-width: 460px;
+  width: 92%;
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.fb-modal-head {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.web-admin {
+  background: var(--bg);
+  color: var(--fg);
+  border-radius: 10px;
+  width: 96%;
+  max-width: 960px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
 .shortcut-view {
   background: var(--surface-2);
   border: 1px solid var(--border);

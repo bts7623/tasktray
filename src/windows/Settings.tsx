@@ -9,6 +9,7 @@ import {
   getDataDir,
   getSettings,
   openDataFolder,
+  openFeedback,
   saveSettings,
   setAutostart,
   setShortcut,
@@ -16,6 +17,7 @@ import {
 } from "../api";
 import { applyTheme } from "../theme";
 import SyncSettings from "../components/SyncSettings";
+import FeedbackForm from "../feedback/FeedbackForm";
 
 /** KeyboardEvent → Tauri 액셀러레이터 문자열. 수식키 없거나 수식키 단독이면 null. */
 function toAccelerator(e: KeyboardEvent): string | null {
@@ -298,6 +300,13 @@ export default function Settings() {
 
       {/* 클라우드 동기화 (D-22) */}
       <SyncSettings />
+
+      {/* 사용자 피드백 (D-23) */}
+      <FeedbackForm
+        platform="desktop"
+        appVersion={version || null}
+        onOpenAdmin={() => void openFeedback()}
+      />
 
       {/* 초기화 + 버전 (FR-28, NFR-04) */}
       <section className="setting-group">

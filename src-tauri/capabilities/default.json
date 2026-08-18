@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "메인 패널·환경설정·로우데이터 창 공통 권한",
-  "windows": ["main", "settings", "rawdata", "help"],
+  "windows": ["main", "settings", "rawdata", "help", "feedback"],
   "permissions": [
     "core:default",
     "core:window:allow-set-size",

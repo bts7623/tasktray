@@ -106,6 +106,13 @@ pub async fn open_help(app: AppHandle) {
     let _ = app.run_on_main_thread(move || window::open_help(&a));
 }
 
+/// 피드백 관리 창 열기(관리자용, D-23). (메인 스레드에서 생성)
+#[tauri::command]
+pub async fn open_feedback(app: AppHandle) {
+    let a = app.clone();
+    let _ = app.run_on_main_thread(move || window::open_feedback(&a));
+}
+
 /// 글로벌 단축키 변경. 기존 것을 해제하고 새 것을 등록한다.
 /// 이미 다른 프로그램이 점유한 키면 등록이 실패하므로, 실패 시 이전 키로 되돌리고 에러를 반환한다.
 /// (충돌 감지: 어떤 프로그램인지 이름은 알 수 없고 "사용 중" 여부만 판별 가능)

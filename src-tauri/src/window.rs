@@ -103,6 +103,11 @@ pub fn open_help(app: &AppHandle) {
     show_or_create(app, "help", "TaskTray - 사용 설명서", 960.0, 760.0);
 }
 
+/// [피드백 관리]: 관리자용 별도 창 (D-23).
+pub fn open_feedback(app: &AppHandle) {
+    show_or_create(app, "feedback", "TaskTray - 피드백 관리", 900.0, 640.0);
+}
+
 /// [TaskTray 제거]: 설치 폴더의 uninstall.exe 를 실행하고 앱을 종료한다.
 /// 설치본이 아니면(개발 실행/단독 실행) 안내 메시지를 보여준다.
 pub fn run_uninstaller(app: &AppHandle) {

@@ -90,6 +90,8 @@
 
 - **D-22 (모바일·동기화 착수, 사용자 요청)** : 중기 목표로 **모바일 지원 + 다기기 동기화**. 스택 = **Supabase(백엔드 DB) + 데스크톱은 로컬 우선+동기화 + 로그인 이메일/비밀번호 + 향후 PWA로 Android/Win/Mac/iOS**. 이를 위해 **schemaVersion 2로 올리고 Task에 `updatedAt` 추가**(동기화 충돌 판정용) — 기존 D-04(스키마 문자 그대로 유지)를 이 목적에 한해 개정. v1 파일은 마이그레이션에서 `updatedAt`을 flowProcessedAt/deletedAt/completedAt/createdAt 중 최신으로 채움. 모든 변경은 `touch()`로 updatedAt 갱신. Supabase 테이블·RLS는 `supabase/schema.sql`, 키는 `.env.local`(git 제외). ⚠️ 이 방향은 요구사항 NFR-05(완전 오프라인·외부 통신 없음)를 의식적으로 완화하는 것(사용자 승인).
 
+- **D-23 (웹 접속 링크 + 사용자 피드백, 사용자 요청)** : ① 환경설정 > 클라우드 동기화 상단에 **웹·모바일 접속 주소**(`https://tasktray.vercel.app`) + [열기](opener)·[복사] 버튼. ② **사용자 피드백 창구**를 Supabase로 추가. 새 테이블 `feedback`(유형 버그/제안/기타 + 본문 + app_version/platform + status) + 관리자 목록 `admins`. **RLS가 방어선**: 로그인 사용자는 INSERT(자기 것)만, `admins`에 등록된 사용자만 전체 SELECT/UPDATE(=본인 계정만 열람). **하루 5건 제한**은 서버 트리거(`feedback_rate_limit`, KST 자정 기준)로 강제, 화면은 `feedback_left_today()` RPC로 남은 횟수만 표시. **본인 접수 내역은 미노출(v1, fire-and-forget)**. UI: 데스크톱=환경설정 하단 제출 폼 + 관리자면 [피드백 관리] → 별도 창(`feedback`, `open_feedback` async 커맨드), 웹=헤더 [피드백] 모달 + 관리자 오버레이. 코드: `supabase/feedback.sql`(사용자가 SQL Editor에서 실행, 관리자 이메일 1줄 수정 필요), `src/feedback/`(feedback.ts·FeedbackForm.tsx·FeedbackAdmin.tsx). ⚠️ D-22처럼 NFR-05 완화의 연장.
+
 ## 4. 미확정/질문 대기 항목
 
 > 이 항목들은 **답변 전까지 임의 구현 금지**. 해당 마일스톤 착수 시 반드시 재확인한다.
