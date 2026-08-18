@@ -122,27 +122,34 @@ function Board({ session }: { session: Session }) {
   const [collapsed, setCollapsed] = useState({ pin: false, active: false, done: false });
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>(loadCatColors());
 
-  const reload = async () => {
+  // silent=true 면 실패해도 화면을 깨지 않음(백그라운드 자동 갱신용)
+  const reload = async (silent = false) => {
     try {
       setTasks(await cloudLoad());
       setPhase("ready");
     } catch (e) {
-      setError(String(e));
-      setPhase("error");
+      if (!silent) {
+        setError(String(e));
+        setPhase("error");
+      }
     }
   };
   useEffect(() => {
     void reload();
   }, []);
 
-  // 자동 갱신: 탭 활성화/주기(20초) 재조회 + Supabase Realtime(있으면 즉시). 다른 기기 변경 반영.
+  // 자동 갱신: 짧은 주기 폴링 + 앱 복귀 시 즉시(iOS PWA 포함) + Supabase Realtime.
   useEffect(() => {
-    const refresh = () => {
-      if (!document.hidden) void reload();
+    const refresh = () => void reload(true);
+    // 8초 주기(무조건). iOS 는 백그라운드에서 타이머가 멈추므로 아래 복귀 이벤트로 보강.
+    const iv = setInterval(refresh, 8000);
+    // 앱/탭 복귀 시 즉시 갱신 — iOS 홈화면 PWA 는 pageshow 가 특히 잘 뜬다.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
     };
-    const iv = setInterval(refresh, 20000);
-    document.addEventListener("visibilitychange", refresh);
+    document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", refresh);
+    window.addEventListener("pageshow", refresh);
 
     let channel: ReturnType<NonNullable<typeof supabase>["channel"]> | undefined;
     if (supabase) {
@@ -151,14 +158,15 @@ function Board({ session }: { session: Session }) {
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "tasks" },
-          () => void reload(),
+          () => void reload(true),
         )
         .subscribe();
     }
     return () => {
       clearInterval(iv);
-      document.removeEventListener("visibilitychange", refresh);
+      document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", refresh);
+      window.removeEventListener("pageshow", refresh);
       if (channel && supabase) void supabase.removeChannel(channel);
     };
   }, []);

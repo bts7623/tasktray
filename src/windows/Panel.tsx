@@ -114,9 +114,9 @@ export default function Panel() {
     })();
   }, []);
 
-  // 주기적 자동 동기화(30초) — 다른 기기(폰) 변경을 반영
+  // 주기적 자동 동기화(15초) — 다른 기기(폰) 변경을 반영
   useEffect(() => {
-    const iv = setInterval(() => void autoSync(), 30000);
+    const iv = setInterval(() => void autoSync(), 15000);
     return () => clearInterval(iv);
   }, []);
 
