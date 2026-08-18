@@ -10,6 +10,7 @@ v1.4.0부터 **웹/모바일(PWA)** 과 **다기기 클라우드 동기화(Supab
 > - 버전별 변경 이력: [`CHANGELOG.md`](CHANGELOG.md)
 > - 작업 원칙·결정 로그·이어서 개발 가이드: [`CLAUDE.md`](CLAUDE.md)
 > - 동기화 백엔드 설정: [`supabase/README.md`](supabase/README.md)
+> - **다른 PC에서 이어서 개발**: [`외부PC_작업가이드.md`](외부PC_작업가이드.md)
 
 ## 기술 스택
 
