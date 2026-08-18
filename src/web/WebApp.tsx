@@ -135,6 +135,34 @@ function Board({ session }: { session: Session }) {
     void reload();
   }, []);
 
+  // 자동 갱신: 탭 활성화/주기(20초) 재조회 + Supabase Realtime(있으면 즉시). 다른 기기 변경 반영.
+  useEffect(() => {
+    const refresh = () => {
+      if (!document.hidden) void reload();
+    };
+    const iv = setInterval(refresh, 20000);
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+
+    let channel: ReturnType<NonNullable<typeof supabase>["channel"]> | undefined;
+    if (supabase) {
+      channel = supabase
+        .channel("tasks-changes")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "tasks" },
+          () => void reload(),
+        )
+        .subscribe();
+    }
+    return () => {
+      clearInterval(iv);
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+      if (channel && supabase) void supabase.removeChannel(channel);
+    };
+  }, []);
+
   // 낙관적 반영 + 클라우드 저장
   const push = (updated: Task, next: Task[]) => {
     setTasks(next);

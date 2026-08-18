@@ -34,3 +34,11 @@ create policy "tasks are private to owner" on public.tasks
 
 -- 변경분(updated_at) 동기화 조회 최적화
 create index if not exists tasks_user_updated_idx on public.tasks (user_id, updated_at);
+
+-- (선택) 실시간 반영: tasks 테이블을 Realtime publication 에 추가.
+-- 이미 추가돼 있으면 무시. 없어도 웹/데스크톱은 주기·포커스 동기화로 동작함.
+do $$
+begin
+  alter publication supabase_realtime add table public.tasks;
+exception when others then null;
+end $$;

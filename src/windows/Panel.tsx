@@ -33,6 +33,9 @@ import {
 import QuickInput from "../components/QuickInput";
 import TaskRow from "../components/TaskRow";
 import Snackbar from "../components/Snackbar";
+import { supabaseConfigured } from "../supabase";
+import { syncNow } from "../sync/sync";
+import { currentUserId } from "../sync/session";
 
 type Phase = "loading" | "ready" | "error";
 
@@ -71,6 +74,28 @@ export default function Panel() {
     }
   };
 
+  // 자동 동기화(로그인 시): 원격과 병합 후 로컬 재로드. 로컬 우선이라 실패해도 앱은 정상.
+  const syncing = useRef(false);
+  const autoSync = async () => {
+    if (syncing.current || !supabaseConfigured) return;
+    const uid = await currentUserId();
+    if (!uid) return;
+    syncing.current = true;
+    try {
+      await syncNow(uid);
+      await reload();
+    } catch {
+      /* 오프라인 등 — 무시(로컬 유지) */
+    } finally {
+      syncing.current = false;
+    }
+  };
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleSync = () => {
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => void autoSync(), 2500);
+  };
+
   useEffect(() => {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
@@ -85,7 +110,14 @@ export default function Panel() {
       await reload();
       setPhase("ready");
       ready.current = true;
+      void autoSync(); // 시작 시 1회
     })();
+  }, []);
+
+  // 주기적 자동 동기화(30초) — 다른 기기(폰) 변경을 반영
+  useEffect(() => {
+    const iv = setInterval(() => void autoSync(), 30000);
+    return () => clearInterval(iv);
   }, []);
 
   // 설정 변경 즉시 반영: 창 크기 리사이즈 + titleAutoParse 등 갱신 (FR-26)
@@ -105,6 +137,7 @@ export default function Panel() {
       .onFocusChanged(({ payload: focused }) => {
         if (focused && ready.current) {
           void reload();
+          void autoSync(); // 패널 열 때 최신화
           getSettings().then(setSettings).catch(() => {});
         }
       })
@@ -112,10 +145,11 @@ export default function Panel() {
     return () => unlisten?.();
   }, []);
 
-  // 변경분을 상태에 반영하고 즉시 저장 (DR-02)
+  // 변경분을 상태에 반영하고 즉시 저장 (DR-02) + 잠시 후 자동 동기화(원격 반영)
   const commit = (next: Task[]) => {
     setTasks(next);
     saveTasks({ schemaVersion, tasks: next }).catch((e) => setError(String(e)));
+    scheduleSync();
   };
 
   const addTask = (rawTitle: string, rawCategory: string | null, dueDate: string | null) => {
