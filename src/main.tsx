@@ -6,8 +6,10 @@ import Panel from "./windows/Panel";
 import Settings from "./windows/Settings";
 import RawData from "./windows/RawData";
 import Help from "./windows/Help";
+import WebApp from "./web/WebApp";
 import { getSettings, type Settings as AppSettings } from "./api";
 import { applyTheme } from "./theme";
+import { isTauri } from "./platform";
 import "./styles.css";
 
 // 치명적 오류 시 빈 화면(특히 투명 창)에서 원인을 볼 수 있게 표시한다.
@@ -25,28 +27,36 @@ function showFatal(msg: string) {
 window.addEventListener("error", (e) => showFatal(`${e.message}\n${e.filename}:${e.lineno}`));
 window.addEventListener("unhandledrejection", (e) => showFatal(String(e.reason)));
 
-// 모든 창 공통: 시작 시 테마 적용 + 설정 변경 즉시 반영 (FR-26)
-getSettings()
-  .then(applyTheme)
-  .catch(() => {});
-listen<AppSettings>("settings-changed", (e) => applyTheme(e.payload)).catch(() => {});
-
-// 메인 패널 창만 투명 배경(반투명 효과용). 다른 창은 불투명 유지.
-try {
-  if (getCurrentWindow().label === "main") {
-    document.body.classList.add("main-window");
-  }
-} catch {
-  /* 개발 프리뷰 대비 */
+// 웹(PWA)에서만 서비스워커 등록(설치·오프라인). Tauri 에서는 하지 않는다.
+if (!isTauri) {
+  import("virtual:pwa-register")
+    .then(({ registerSW }) => registerSW({ immediate: true }))
+    .catch(() => {});
 }
 
-// 창 라벨에 따라 렌더링할 화면을 결정한다. (main=패널, settings=환경설정, rawdata=로우데이터)
+// 데스크톱(Tauri) 전용 부트스트랩: 테마 적용·변경 수신·투명 배경. 웹에서는 건너뛴다.
+if (isTauri) {
+  getSettings()
+    .then(applyTheme)
+    .catch(() => {});
+  listen<AppSettings>("settings-changed", (e) => applyTheme(e.payload)).catch(() => {});
+  try {
+    if (getCurrentWindow().label === "main") {
+      document.body.classList.add("main-window");
+    }
+  } catch {
+    /* 무시 */
+  }
+}
+
+// 렌더링 대상 결정: 웹이면 WebApp, Tauri면 창 라벨별 화면.
 function pickView() {
+  if (!isTauri) return <WebApp />;
   let label = "main";
   try {
     label = getCurrentWindow().label;
   } catch {
-    // 브라우저 단독 실행(개발 프리뷰) 대비 기본값 유지
+    /* 기본값 유지 */
   }
   switch (label) {
     case "settings":
