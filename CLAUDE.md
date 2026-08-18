@@ -1,5 +1,23 @@
 # CLAUDE.md — TaskTray 프로젝트 작업 원칙
 
+## 이어서 개발 시작하기 (다른 PC/세션에서 clone 후)
+
+> 처음 이어받는다면 이 순서로 읽으면 맥락이 잡힌다: **이 파일(결정 D-01~D-22) → [CHANGELOG.md](CHANGELOG.md)(버전별 변경) → [요구사항정의서](개인업무관리프로그램_요구사항정의서.md)(현재 스펙) → [README.md](README.md)(빌드법)**.
+
+- **현재 버전**: v1.4.0 (데스크톱 앱 + 웹/모바일 PWA + 다기기 실시간 동기화)
+- **구성 요약**
+  | 영역 | 위치 | 설명 |
+  |---|---|---|
+  | 데스크톱(Tauri 2) | `src-tauri/` (Rust), `src/windows/`, `src/components/`, `src/api.ts` | 트레이 앱. 로컬 JSON(`%APPDATA%\TaskTray`) 우선 |
+  | 순수 로직(공용) | `src/tasks.ts`, `src/report.ts` | Task 정렬·파싱·리포트. 데스크톱/웹 공용, 단위테스트 있음 |
+  | 웹/모바일(PWA) | `src/web/` (`WebApp.tsx`, `cloud.ts`), `src/main.tsx`(`isTauri` 분기) | 반응형 화면. Supabase 직접 사용 |
+  | 동기화 | `src/sync/` (`sync.ts`·`merge.ts`·`map.ts`·`session.ts`), `src/supabase.ts` | 로컬↔클라우드 양방향(`updatedAt` 최신 우선) |
+  | 백엔드 | `supabase/schema.sql` | Postgres `tasks` 테이블 + RLS + Realtime |
+- **배포**: 데스크톱 = GitHub Releases(NSIS 설치파일) / 웹 = Vercel(`tasktray.vercel.app`, main push 시 자동) / DB = Supabase.
+- **시크릿**: `.env.local`(git 제외) 에 `VITE_SUPABASE_URL`·`VITE_SUPABASE_ANON_KEY` 필요. Vercel 환경변수에도 동일 설정. 새 PC에서 clone 시 이 파일을 다시 만들어야 웹/동기화 빌드가 동작(없어도 데스크톱 로컬 기능은 정상).
+- **명령**: `pnpm install` → 데스크톱 `pnpm tauri dev` / 설치파일 `pnpm tauri build` / 웹 빌드 `pnpm build` / 테스트 `pnpm test`. (Rust·MSVC Build Tools 필요 — §5)
+- **릴리스 절차**: 버전 3곳(`tauri.conf.json`·`Cargo.toml`·`package.json`) 올림 → 커밋·push(웹 자동배포) → `pnpm tauri build` → `gh release create vX.Y.Z <exe> --notes-file <md>` → CHANGELOG.md 갱신.
+
 ## 0. 최우선 원칙 (반드시 준수)
 
 1. **요구사항의 유일한 기준은 [`개인업무관리프로그램_요구사항정의서.md`](개인업무관리프로그램_요구사항정의서.md) 이다.**
