@@ -75,6 +75,14 @@ pub struct WindowSize {
     pub y: Option<i32>,
 }
 
+/// 개인 메모 팝업 창의 크기(px). 환경설정에서 조절. (D-24)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MemoSize {
+    pub width: u32,
+    pub height: u32,
+}
+
 /// settings.json 파일 구조. (§6.2)
 /// `data_path` 가 None 이면 최초 실행(저장 폴더 미지정) 상태를 뜻한다.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,6 +105,9 @@ pub struct Settings {
     /// 카테고리 대분류별 사용자 지정 색상(대분류 → hex). 없으면 해시 기반 자동 색.
     #[serde(default)]
     pub category_colors: HashMap<String, String>,
+    /// 개인 메모 팝업 창 크기. (D-24)
+    #[serde(default = "default_memo")]
+    pub memo: MemoSize,
 }
 
 fn default_shortcut() -> String {
@@ -105,6 +116,13 @@ fn default_shortcut() -> String {
 
 fn default_opacity() -> f64 {
     1.0
+}
+
+fn default_memo() -> MemoSize {
+    MemoSize {
+        width: 400,
+        height: 520,
+    }
 }
 
 impl Default for Settings {
@@ -129,6 +147,7 @@ impl Default for Settings {
             always_on_top: false,
             opacity: default_opacity(),
             category_colors: HashMap::new(),
+            memo: default_memo(),
         }
     }
 }
@@ -221,6 +240,26 @@ pub fn save_settings(app: &AppHandle, settings: &Settings) -> Result<(), String>
     let path = settings_path(app)?;
     let json = serde_json::to_vec_pretty(settings).map_err(|e| format!("설정 직렬화 실패: {e}"))?;
     atomic_write(&path, &json)
+}
+
+// ===== memo.enc (개인 메모, 암호화 저장, D-24) =====
+// 파일 내용은 프론트(WebCrypto, AES-GCM)에서 암호화된 문자열이다. 백엔드는 저장/읽기만 담당하며
+// 평문을 다루지 않는다. 평소 파일을 열면 암호문만 보인다.
+
+pub fn memo_path(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(app_dir(app)?.join("memo.enc"))
+}
+
+/// 암호화된 메모 파일 내용을 읽는다. 없으면 None(신규).
+pub fn load_memo(app: &AppHandle) -> Option<String> {
+    let p = memo_path(app).ok()?;
+    fs::read_to_string(&p).ok()
+}
+
+/// 암호화된 메모 문자열을 atomic write 로 저장한다.
+pub fn save_memo(app: &AppHandle, contents: &str) -> Result<(), String> {
+    let p = memo_path(app)?;
+    atomic_write(&p, contents.as_bytes())
 }
 
 // ===== tasks.json =====

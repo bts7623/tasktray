@@ -10,6 +10,7 @@ import {
   getSettings,
   loadTasks,
   openHelp,
+  openMemo,
   openSettings,
   saveSettings,
   saveTasks,
@@ -272,13 +273,32 @@ export default function Panel() {
     <div className="panel">
       {/* 헤더를 잡고 드래그하면 창을 이동(멀티모니터 포함). data-tauri-drag-region = 네이티브 드래그 */}
       <header className="panel-head" data-tauri-drag-region>
-        <span
-          className="panel-title"
-          onClick={() => void openHelp()}
-          title="사용 설명서 열기"
-        >
-          TaskTray
-        </span>
+        <div className="head-left">
+          <span
+            className="panel-title"
+            onClick={() => void openHelp()}
+            title="사용 설명서 열기"
+          >
+            TaskTray
+          </span>
+          {/* 로고 우측: 개인 메모 아이콘 (D-24) */}
+          <button className="memo-btn" onClick={() => void openMemo()} title="개인 메모">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+              <path d="M14 3v6h6" />
+              <path d="M8 13h6M8 17h5" />
+            </svg>
+          </button>
+        </div>
         {/* 순서: 투명도 > 환경설정 > 팝업 고정 */}
         <div className="head-tools">
           <input

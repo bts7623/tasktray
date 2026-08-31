@@ -108,6 +108,26 @@ pub fn open_feedback(app: &AppHandle) {
     show_or_create(app, "feedback", "TaskTray - 피드백 관리", 900.0, 640.0);
 }
 
+/// [개인 메모]: 별도 창 (D-24). 크기는 환경설정의 메모 크기를 따른다.
+/// 별도 창이라 패널이 숨겨지거나 바깥을 클릭해도 닫히지 않고, 창 X 로만 닫힌다.
+pub fn open_memo(app: &AppHandle) {
+    if let Some(win) = app.get_webview_window("memo") {
+        let _ = win.unminimize();
+        let _ = win.show();
+        let _ = win.set_focus();
+        return;
+    }
+    let s = storage::load_settings(app);
+    let _ = WebviewWindowBuilder::new(app, "memo", WebviewUrl::App("index.html".into()))
+        .title("TaskTray - 메모")
+        .inner_size(s.memo.width as f64, s.memo.height as f64)
+        .min_inner_size(240.0, 240.0)
+        .resizable(true)
+        .skip_taskbar(false)
+        .center()
+        .build();
+}
+
 /// [TaskTray 제거]: 설치 폴더의 uninstall.exe 를 실행하고 앱을 종료한다.
 /// 설치본이 아니면(개발 실행/단독 실행) 안내 메시지를 보여준다.
 pub fn run_uninstaller(app: &AppHandle) {

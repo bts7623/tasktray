@@ -6,6 +6,7 @@ import Panel from "./windows/Panel";
 import Settings from "./windows/Settings";
 import RawData from "./windows/RawData";
 import Help from "./windows/Help";
+import Memo from "./windows/Memo";
 import FeedbackAdmin from "./feedback/FeedbackAdmin";
 import WebApp from "./web/WebApp";
 import { getSettings, type Settings as AppSettings } from "./api";
@@ -68,6 +69,8 @@ function pickView() {
       return <Help />;
     case "feedback":
       return <FeedbackAdmin />;
+    case "memo":
+      return <Memo />;
     default:
       return <Panel />;
   }

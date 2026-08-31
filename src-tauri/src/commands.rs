@@ -113,6 +113,25 @@ pub async fn open_feedback(app: AppHandle) {
     let _ = app.run_on_main_thread(move || window::open_feedback(&a));
 }
 
+/// 개인 메모 창 열기(헤더 메모 아이콘, D-24). (메인 스레드에서 생성)
+#[tauri::command]
+pub async fn open_memo(app: AppHandle) {
+    let a = app.clone();
+    let _ = app.run_on_main_thread(move || window::open_memo(&a));
+}
+
+/// 암호화된 메모 파일 읽기(없으면 null). 복호화는 프론트에서 수행. (D-24)
+#[tauri::command]
+pub fn read_memo(app: AppHandle) -> Option<String> {
+    storage::load_memo(&app)
+}
+
+/// 암호화된 메모 문자열 저장(atomic write). 평문은 저장하지 않는다. (D-24)
+#[tauri::command]
+pub fn save_memo(app: AppHandle, contents: String) -> Result<(), String> {
+    storage::save_memo(&app, &contents)
+}
+
 /// 글로벌 단축키 변경. 기존 것을 해제하고 새 것을 등록한다.
 /// 이미 다른 프로그램이 점유한 키면 등록이 실패하므로, 실패 시 이전 키로 되돌리고 에러를 반환한다.
 /// (충돌 감지: 어떤 프로그램인지 이름은 알 수 없고 "사용 중" 여부만 판별 가능)

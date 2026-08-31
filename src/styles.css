@@ -88,6 +88,30 @@ body.main-window {
   gap: 8px;
 }
 
+/* 로고 + 메모 아이콘 좌측 그룹 */
+.head-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 헤더 메모 아이콘 — 톱니바퀴와 동일 톤(테마 글자색) */
+.memo-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+  padding: 2px 5px;
+  border-radius: 6px;
+  color: var(--fg);
+  opacity: 0.6;
+  transition: opacity 0.1s;
+}
+
+.memo-btn:hover {
+  opacity: 1;
+}
+
 .opacity-slider {
   width: 68px;
   height: 4px;
@@ -786,6 +810,44 @@ body.main-window {
   cursor: pointer;
 }
 
+/* 화면 크기 / 메모 크기 — 한 줄 입력 + 두 행 열 정렬 (D-24) */
+.size-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.size-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.size-label {
+  color: var(--fg);
+}
+
+.size-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg);
+}
+
+.size-field input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
 .setting-item input[type="checkbox"] {
   width: 16px;
   height: 16px;
@@ -1249,4 +1311,91 @@ body.main-window {
 .btn:hover {
   background: var(--surface-2);
   border-color: var(--accent);
+}
+
+/* ── 개인 메모 창 (D-24) ──────────────────────────────── */
+.memo-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  box-sizing: border-box;
+}
+
+.memo-page.center {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.memo-gate {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.memo-gate-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.memo-gate input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.memo-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.memo-sub {
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.memo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.memo-bar-title {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.memo-save {
+  font-size: 0.74rem;
+  opacity: 0.6;
+}
+
+.memo-area {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.5;
 }

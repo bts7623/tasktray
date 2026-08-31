@@ -95,6 +95,9 @@ export default function Settings() {
   const setWindow = (patch: Partial<AppSettings["window"]>) =>
     commit({ ...settings, window: { ...settings.window, ...patch } });
 
+  const setMemo = (patch: Partial<AppSettings["memo"]>) =>
+    commit({ ...settings, memo: { ...settings.memo, ...patch } });
+
   const toggleAutostart = async (enabled: boolean) => {
     try {
       await setAutostart(enabled); // 레지스트리 등록/해제 (FR-27)
@@ -204,28 +207,55 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* 창 크기 (FR-24 ④) */}
+      {/* 화면 크기 + 메모 크기 (FR-24 ④, D-24). 한 줄 입력 + 두 행 열 정렬 */}
       <section className="setting-group">
-        <div className="setting-label">앱 창 크기 (px)</div>
-        <div className="setting-item">
-          <span>가로</span>
-          <input
-            type="number"
-            min={300}
-            max={1200}
-            value={settings.window.width}
-            onChange={(e) => setWindow({ width: Number(e.target.value) || 360 })}
-          />
-        </div>
-        <div className="setting-item">
-          <span>세로</span>
-          <input
-            type="number"
-            min={400}
-            max={1600}
-            value={settings.window.height}
-            onChange={(e) => setWindow({ height: Number(e.target.value) || 720 })}
-          />
+        <div className="size-grid">
+          <div className="size-row">
+            <span className="size-label">화면 크기 (px)</span>
+            <label className="size-field">
+              가로
+              <input
+                type="number"
+                min={300}
+                max={1200}
+                value={settings.window.width}
+                onChange={(e) => setWindow({ width: Number(e.target.value) || 360 })}
+              />
+            </label>
+            <label className="size-field">
+              세로
+              <input
+                type="number"
+                min={400}
+                max={1600}
+                value={settings.window.height}
+                onChange={(e) => setWindow({ height: Number(e.target.value) || 720 })}
+              />
+            </label>
+          </div>
+          <div className="size-row">
+            <span className="size-label">메모 크기 (px)</span>
+            <label className="size-field">
+              가로
+              <input
+                type="number"
+                min={240}
+                max={1200}
+                value={settings.memo.width}
+                onChange={(e) => setMemo({ width: Number(e.target.value) || 400 })}
+              />
+            </label>
+            <label className="size-field">
+              세로
+              <input
+                type="number"
+                min={240}
+                max={1600}
+                value={settings.memo.height}
+                onChange={(e) => setMemo({ height: Number(e.target.value) || 520 })}
+              />
+            </label>
+          </div>
         </div>
       </section>
 

@@ -16,6 +16,11 @@ export interface WindowSize {
   y?: number | null;
 }
 
+export interface MemoSize {
+  width: number;
+  height: number;
+}
+
 export interface Settings {
   dataPath: string | null;
   theme: Theme;
@@ -26,6 +31,7 @@ export interface Settings {
   alwaysOnTop: boolean;
   opacity: number;
   categoryColors: Record<string, string>;
+  memo: MemoSize;
 }
 
 export interface Task {
@@ -98,6 +104,15 @@ export const openHelp = () => invoke<void>("open_help");
 /** 피드백 관리 창 열기(관리자, D-23). */
 export const openFeedback = () => invoke<void>("open_feedback");
 
+/** 개인 메모 창 열기(헤더 메모 아이콘, D-24). */
+export const openMemo = () => invoke<void>("open_memo");
+
+/** 암호화된 메모 파일 읽기(없으면 null). */
+export const readMemo = () => invoke<string | null>("read_memo");
+
+/** 암호화된 메모 문자열 저장. */
+export const saveMemo = (contents: string) => invoke<void>("save_memo", { contents });
+
 /** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
 export function defaultSettings(): Omit<Settings, "dataPath"> {
   return {
@@ -109,5 +124,6 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     alwaysOnTop: false,
     opacity: 1,
     categoryColors: {},
+    memo: { width: 400, height: 520 },
   };
 }
