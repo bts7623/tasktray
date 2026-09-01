@@ -132,6 +132,40 @@ pub fn save_memo(app: AppHandle, contents: String) -> Result<(), String> {
     storage::save_memo(&app, &contents)
 }
 
+/// 메모 비밀번호 세션이 아직 유효한지 판단한다. (D-28)
+/// 주기(memoLockMinutes): 0=매번(항상 false), -1=앱 종료까지, n>0=마지막 해제 후 n분 이내.
+#[tauri::command]
+pub fn memo_session_valid(app: AppHandle) -> bool {
+    let minutes = storage::load_settings(&app).memo_lock_minutes;
+    if minutes == 0 {
+        return false;
+    }
+    let Some(state) = app.try_state::<AppState>() else {
+        return false;
+    };
+    let guard = state.memo_unlocked_at.lock().unwrap();
+    match *guard {
+        Some(t) => minutes < 0 || t.elapsed().as_secs() < (minutes as u64) * 60,
+        None => false,
+    }
+}
+
+/// 비밀번호 검증 성공 시 세션 해제 시각을 기록한다. (D-28)
+#[tauri::command]
+pub fn memo_mark_unlocked(app: AppHandle) {
+    if let Some(state) = app.try_state::<AppState>() {
+        *state.memo_unlocked_at.lock().unwrap() = Some(std::time::Instant::now());
+    }
+}
+
+/// 메모 세션을 즉시 종료한다([잠그기] 버튼). 다음 열람 시 비밀번호 재입력. (D-28)
+#[tauri::command]
+pub fn memo_lock(app: AppHandle) {
+    if let Some(state) = app.try_state::<AppState>() {
+        *state.memo_unlocked_at.lock().unwrap() = None;
+    }
+}
+
 /// 글로벌 단축키 변경. kind: "panel" | "settings" | "memo". (D-27)
 /// 해당 종류의 기존 단축키를 해제하고 새 것을 등록한다.
 /// 이미 다른 프로그램이 점유한 키면 등록이 실패하므로, 실패 시 이전 키로 되돌리고 에러를 반환한다.

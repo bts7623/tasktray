@@ -123,6 +123,9 @@ pub struct Settings {
     /// 환경설정 창 글자 크기(px). 앱 화면·메모와 별도. (D-25)
     #[serde(default = "default_font_size")]
     pub settings_font_size: u32,
+    /// 메모 비밀번호 재입력 주기(분). 0=매번, -1=앱 종료할 때까지, n>0=n분. (D-28)
+    #[serde(default)]
+    pub memo_lock_minutes: i32,
 }
 
 fn default_font_size() -> u32 {
@@ -187,6 +190,7 @@ impl Default for Settings {
             settings_size: default_settings_size(),
             memo_font_size: default_font_size(),
             settings_font_size: default_font_size(),
+            memo_lock_minutes: 0,
         }
     }
 }

@@ -42,6 +42,8 @@ export interface Settings {
   memoFontSize: number;
   /** 환경설정 창 글자 크기(px). 앱 화면·메모와 별도. (D-25) */
   settingsFontSize: number;
+  /** 메모 비밀번호 재입력 주기(분). 0=매번, -1=앱 종료할 때까지, n>0=n분. (D-28) */
+  memoLockMinutes: number;
 }
 
 export interface Task {
@@ -123,6 +125,15 @@ export const readMemo = () => invoke<string | null>("read_memo");
 /** 암호화된 메모 문자열 저장. */
 export const saveMemo = (contents: string) => invoke<void>("save_memo", { contents });
 
+/** 메모 비밀번호 세션이 유효한지(주기 내) 확인. (D-28) */
+export const memoSessionValid = () => invoke<boolean>("memo_session_valid");
+
+/** 메모 비밀번호 검증 성공 시 세션 해제 시각 기록. (D-28) */
+export const memoMarkUnlocked = () => invoke<void>("memo_mark_unlocked");
+
+/** 메모 세션 즉시 종료([잠그기]). (D-28) */
+export const memoLock = () => invoke<void>("memo_lock");
+
 /** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
 export function defaultSettings(): Omit<Settings, "dataPath"> {
   return {
@@ -140,5 +151,6 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     settingsSize: { width: 500, height: 780 },
     memoFontSize: 14,
     settingsFontSize: 14,
+    memoLockMinutes: 0,
   };
 }

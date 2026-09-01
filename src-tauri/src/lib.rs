@@ -10,6 +10,8 @@ mod tray;
 mod window;
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::Mutex;
+use std::time::Instant;
 
 use tauri::Manager;
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
@@ -24,6 +26,8 @@ pub struct AppState {
     pub panel_pinned: AtomicBool,
     /// 창 이동 저장 디바운스용 세대 카운터.
     pub move_gen: AtomicU64,
+    /// 메모 비밀번호 세션: 마지막 잠금 해제 시각(메모리 보관, 앱 재시작 시 초기화). (D-28)
+    pub memo_unlocked_at: Mutex<Option<Instant>>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -68,6 +72,7 @@ pub fn run() {
             suppress_panel_hide: AtomicBool::new(false),
             panel_pinned: AtomicBool::new(false),
             move_gen: AtomicU64::new(0),
+            memo_unlocked_at: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_settings,
@@ -87,6 +92,9 @@ pub fn run() {
             commands::open_memo,
             commands::read_memo,
             commands::save_memo,
+            commands::memo_session_valid,
+            commands::memo_mark_unlocked,
+            commands::memo_lock,
         ])
         .setup(move |app| {
             // 확보한 락 리스너로 이후 새 인스턴스의 종료 신호를 수신한다. (NFR-02)

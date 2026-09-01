@@ -6,9 +6,16 @@
 // 전체 구조(JSON)를 통째로 암호화해 저장한다.
 
 import { useEffect, useRef, useState } from "react";
-import { readMemo, saveMemo } from "../api";
+import {
+  memoLock,
+  memoMarkUnlocked,
+  memoSessionValid,
+  readMemo,
+  saveMemo,
+} from "../api";
 import { supabase, supabaseConfigured } from "../supabase";
 import { decryptMemo, encryptMemo } from "../memo/crypto";
+import { syncWindowSize } from "./resizeSync";
 
 type Phase = "loading" | "login-required" | "auth" | "editing" | "decrypt-error";
 type SaveState = "idle" | "saving" | "saved";
@@ -68,20 +75,47 @@ export default function Memo() {
   const dragId = useRef<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
-  // 시작: 로그인 세션 확인 → 이메일 확보(없으면 로그인 안내)
+  // 창 크기 ↔ 설정 동기화(드래그 시 자동 저장 + 슬라이더 변경 시 실시간 반영). (D-28)
+  useEffect(() => syncWindowSize((s) => s.memo, (s, size) => ({ ...s, memo: size })), []);
+
+  // 암호화된 메모를 읽어 복호화 후 편집기로. 실패 시 복호화 오류 화면.
+  const loadIntoEditor = async (mail: string) => {
+    const raw = await readMemo();
+    if (!raw) {
+      setDoc(freshDoc());
+      setPhase("editing");
+      return;
+    }
+    try {
+      setDoc(parseDoc(await decryptMemo(raw, mail)));
+      setPhase("editing");
+    } catch {
+      setPhase("decrypt-error");
+    }
+  };
+
+  // 시작: 로그인 세션 확인 → 이메일 확보(없으면 로그인 안내). 비번 세션이 유효하면 게이트 건너뜀.
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
       setPhase("login-required");
       return;
     }
-    supabase.auth.getSession().then(({ data }) => {
+    void supabase.auth.getSession().then(async ({ data }) => {
       const mail = data.session?.user.email ?? null;
       if (!mail) {
         setPhase("login-required");
-      } else {
-        setEmail(mail);
-        setPhase("auth");
+        return;
       }
+      setEmail(mail);
+      try {
+        if (await memoSessionValid()) {
+          await loadIntoEditor(mail);
+          return;
+        }
+      } catch {
+        /* 세션 확인 실패 시 정상적으로 비번 요구 */
+      }
+      setPhase("auth");
     });
   }, []);
 
@@ -97,18 +131,8 @@ export default function Memo() {
         return;
       }
       setPassword("");
-      const raw = await readMemo();
-      if (!raw) {
-        setDoc(freshDoc());
-        setPhase("editing");
-        return;
-      }
-      try {
-        setDoc(parseDoc(await decryptMemo(raw, email)));
-        setPhase("editing");
-      } catch {
-        setPhase("decrypt-error");
-      }
+      void memoMarkUnlocked(); // 세션 해제 시각 기록(주기 동안 재입력 생략)
+      await loadIntoEditor(email);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -332,7 +356,21 @@ export default function Memo() {
       </div>
 
       <div className="memo-status">
-        {saveState === "saving" ? "저장 중…" : saveState === "saved" ? "저장됨" : ""}
+        <span className="memo-save">
+          {saveState === "saving" ? "저장 중…" : saveState === "saved" ? "저장됨" : ""}
+        </span>
+        <button
+          className="btn-sm ghost memo-lock-btn"
+          title="지금 잠그기 (다음에 비밀번호 다시 입력)"
+          onClick={() => {
+            void memoLock();
+            setPassword("");
+            setError(null);
+            setPhase("auth");
+          }}
+        >
+          🔒 잠그기
+        </button>
       </div>
 
       <textarea

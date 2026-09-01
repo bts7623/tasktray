@@ -55,6 +55,8 @@ export default function Panel() {
 
   const bootstrapped = useRef(false);
   const ready = useRef(false);
+  const settingsRef = useRef<Settings | null>(null);
+  settingsRef.current = settings;
 
   // 설정의 창 크기를 메인 패널(자기 자신)에 적용 (FR-24 창 크기 즉시 반영)
   const applySize = (s: Settings) => {
@@ -129,6 +131,41 @@ export default function Panel() {
       applySize(e.payload);
     }).then((u) => (unlisten = u));
     return () => unlisten?.();
+  }, []);
+
+  // 리사이즈 그립으로 패널 크기를 바꾸면 설정에 자동 저장(디바운스). (D-28)
+  useEffect(() => {
+    const w = getCurrentWindow();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let un: (() => void) | undefined;
+    const save = async () => {
+      try {
+        const [sz, sf] = await Promise.all([w.innerSize(), w.scaleFactor()]);
+        const l = sz.toLogical(sf);
+        const width = Math.round(l.width);
+        const height = Math.round(l.height);
+        const cur = settingsRef.current;
+        if (!cur) return;
+        if (Math.abs(cur.window.width - width) <= 2 && Math.abs(cur.window.height - height) <= 2) {
+          return; // 프로그램적 리사이즈 → 저장 생략(루프 방지)
+        }
+        const next: Settings = { ...cur, window: { ...cur.window, width, height } };
+        setSettings(next);
+        saveSettings(next).catch((e) => setError(String(e)));
+      } catch {
+        /* 무시 */
+      }
+    };
+    void w
+      .onResized(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => void save(), 400);
+      })
+      .then((u) => (un = u));
+    return () => {
+      if (timer) clearTimeout(timer);
+      un?.();
+    };
   }, []);
 
   // 패널이 다시 열릴(포커스) 때 최신 tasks.json 반영 + 설정(제목 자동분리) 갱신
@@ -271,6 +308,15 @@ export default function Panel() {
 
   return (
     <div className="panel">
+      {/* 우측 하단 리사이즈 그립: 드래그로 패널 크기 조절 (프레임리스 창이라 별도 손잡이 필요, D-28) */}
+      <div
+        className="resize-grip"
+        title="드래그하여 크기 조절"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          void getCurrentWindow().startResizeDragging("SouthEast");
+        }}
+      />
       {/* 헤더를 잡고 드래그하면 창을 이동(멀티모니터 포함). data-tauri-drag-region = 네이티브 드래그 */}
       <header className="panel-head" data-tauri-drag-region>
         <div className="head-left">

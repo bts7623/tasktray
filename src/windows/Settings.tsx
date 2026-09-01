@@ -103,6 +103,75 @@ function toAccelerator(e: KeyboardEvent): string | null {
   return [...mods, key].join("+");
 }
 
+/** 슬라이더 + 숫자 입력(양방향) 한 줄. 가로/세로를 슬라이더로 직관적으로, 숫자로 정밀하게. (D-28) */
+function SizeControl({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: { width: number; height: number };
+  min: { w: number; h: number };
+  max: { w: number; h: number };
+  onChange: (patch: Partial<{ width: number; height: number }>) => void;
+}) {
+  return (
+    <div className="size-row">
+      <span className="size-label">{label}</span>
+      <div className="size-dim">
+        <span className="size-dim-label">가로</span>
+        <input
+          type="range"
+          min={min.w}
+          max={max.w}
+          step={10}
+          value={value.width}
+          onChange={(e) => onChange({ width: Number(e.target.value) })}
+        />
+        <input
+          className="size-num"
+          type="number"
+          min={min.w}
+          max={max.w}
+          value={value.width}
+          onChange={(e) => onChange({ width: Number(e.target.value) || min.w })}
+        />
+      </div>
+      <div className="size-dim">
+        <span className="size-dim-label">세로</span>
+        <input
+          type="range"
+          min={min.h}
+          max={max.h}
+          step={10}
+          value={value.height}
+          onChange={(e) => onChange({ height: Number(e.target.value) })}
+        />
+        <input
+          className="size-num"
+          type="number"
+          min={min.h}
+          max={max.h}
+          value={value.height}
+          onChange={(e) => onChange({ height: Number(e.target.value) || min.h })}
+        />
+      </div>
+    </div>
+  );
+}
+
+// 메모 비밀번호 재입력 주기 옵션 (분). 0=매번, -1=앱 종료할 때까지. (D-28)
+const MEMO_LOCK_OPTIONS: { label: string; value: number }[] = [
+  { label: "매번", value: 0 },
+  { label: "5분", value: 5 },
+  { label: "15분", value: 15 },
+  { label: "30분", value: 30 },
+  { label: "1시간", value: 60 },
+  { label: "앱 종료할 때까지", value: -1 },
+];
+
 const FONT_PRESETS: { label: string; size: number }[] = [
   { label: "소", size: 12 },
   { label: "중", size: 14 },
@@ -129,6 +198,8 @@ export default function Settings() {
   const [version, setVersion] = useState("");
   const [error, setError] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settingsRef = useRef<AppSettings | null>(null);
+  settingsRef.current = settings;
 
   // 이 창(환경설정)의 크기를 설정값에 맞춘다. (D-27)
   const applySettingsSize = (s: AppSettings) => {
@@ -158,6 +229,42 @@ export default function Settings() {
       saveSettings(next).catch((e) => setError(String(e)));
     }, 250);
   };
+
+  // 환경설정 창을 테두리로 드래그해 크기를 바꾸면 슬라이더 값 갱신 + 자동 저장. (D-28)
+  useEffect(() => {
+    const w = getCurrentWindow();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let un: (() => void) | undefined;
+    const save = async () => {
+      try {
+        const [sz, sf] = await Promise.all([w.innerSize(), w.scaleFactor()]);
+        const l = sz.toLogical(sf);
+        const width = Math.round(l.width);
+        const height = Math.round(l.height);
+        const cur = settingsRef.current;
+        if (!cur) return;
+        if (
+          Math.abs(cur.settingsSize.width - width) <= 2 &&
+          Math.abs(cur.settingsSize.height - height) <= 2
+        ) {
+          return; // 프로그램적 리사이즈 → 저장 생략(루프 방지)
+        }
+        commit({ ...cur, settingsSize: { width, height } });
+      } catch {
+        /* 무시 */
+      }
+    };
+    void w
+      .onResized(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => void save(), 400);
+      })
+      .then((u) => (un = u));
+    return () => {
+      if (timer) clearTimeout(timer);
+      un?.();
+    };
+  }, []);
 
   if (!settings) {
     return (
@@ -324,78 +431,34 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* 화면 크기 + 메모 크기 (FR-24 ④, D-24). 한 줄 입력 + 두 행 열 정렬 */}
+      {/* 화면·메모·환경설정 크기 (FR-24 ④, D-24/D-28). 슬라이더 + 숫자(양방향·실시간) */}
       <section className="setting-group">
+        <div className="setting-label">창 크기 (px)</div>
+        <p className="setting-desc">
+          슬라이더나 숫자로 조절할 수 있고, 환경설정·메모 창은 테두리를 드래그해도 자동 저장됩니다.
+        </p>
         <div className="size-grid">
-          <div className="size-row">
-            <span className="size-label">화면 크기 (px)</span>
-            <label className="size-field">
-              가로
-              <input
-                type="number"
-                min={300}
-                max={1200}
-                value={settings.window.width}
-                onChange={(e) => setWindow({ width: Number(e.target.value) || 360 })}
-              />
-            </label>
-            <label className="size-field">
-              세로
-              <input
-                type="number"
-                min={400}
-                max={1600}
-                value={settings.window.height}
-                onChange={(e) => setWindow({ height: Number(e.target.value) || 720 })}
-              />
-            </label>
-          </div>
-          <div className="size-row">
-            <span className="size-label">메모 크기 (px)</span>
-            <label className="size-field">
-              가로
-              <input
-                type="number"
-                min={240}
-                max={1200}
-                value={settings.memo.width}
-                onChange={(e) => setMemo({ width: Number(e.target.value) || 400 })}
-              />
-            </label>
-            <label className="size-field">
-              세로
-              <input
-                type="number"
-                min={240}
-                max={1600}
-                value={settings.memo.height}
-                onChange={(e) => setMemo({ height: Number(e.target.value) || 520 })}
-              />
-            </label>
-          </div>
-          <div className="size-row">
-            <span className="size-label">환경설정 크기 (px)</span>
-            <label className="size-field">
-              가로
-              <input
-                type="number"
-                min={300}
-                max={1400}
-                value={settings.settingsSize.width}
-                onChange={(e) => setSettingsSize({ width: Number(e.target.value) || 500 })}
-              />
-            </label>
-            <label className="size-field">
-              세로
-              <input
-                type="number"
-                min={300}
-                max={1600}
-                value={settings.settingsSize.height}
-                onChange={(e) => setSettingsSize({ height: Number(e.target.value) || 780 })}
-              />
-            </label>
-          </div>
+          <SizeControl
+            label="화면 크기"
+            value={settings.window}
+            min={{ w: 300, h: 400 }}
+            max={{ w: 1200, h: 1600 }}
+            onChange={setWindow}
+          />
+          <SizeControl
+            label="메모 크기"
+            value={settings.memo}
+            min={{ w: 240, h: 240 }}
+            max={{ w: 1200, h: 1600 }}
+            onChange={setMemo}
+          />
+          <SizeControl
+            label="환경설정 크기"
+            value={settings.settingsSize}
+            min={{ w: 300, h: 300 }}
+            max={{ w: 1400, h: 1600 }}
+            onChange={setSettingsSize}
+          />
         </div>
       </section>
 
@@ -445,6 +508,21 @@ export default function Settings() {
             onChange={(e) => commit({ ...settings, titleAutoParse: e.target.checked })}
           />
         </label>
+        {/* 메모 비밀번호 재입력 주기 (D-28) */}
+        <div className="setting-item">
+          <span>메모 비밀번호 재입력 주기</span>
+          <select
+            className="setting-select"
+            value={settings.memoLockMinutes}
+            onChange={(e) => commit({ ...settings, memoLockMinutes: Number(e.target.value) })}
+          >
+            {MEMO_LOCK_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </section>
 
       {/* 데이터 저장 폴더 (FR-24 ⑥, D-08) */}
