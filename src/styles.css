@@ -1404,6 +1404,11 @@ body.main-window {
   font-weight: 600;
 }
 
+/* 드래그 중 놓을 위치 표시 (D-26) */
+.memo-tab.drag-over {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
 .memo-tab-name {
   overflow: hidden;
   text-overflow: ellipsis;

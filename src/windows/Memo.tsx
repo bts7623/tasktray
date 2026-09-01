@@ -65,6 +65,8 @@ export default function Memo() {
   const [renameValue, setRenameValue] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragId = useRef<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   // 시작: 로그인 세션 확인 → 이메일 확보(없으면 로그인 안내)
   useEffect(() => {
@@ -170,6 +172,18 @@ export default function Memo() {
     setRenamingId(null);
   };
 
+  // 드래그 앤 드롭으로 탭 순서 변경
+  const reorder = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const arr = [...doc.memos];
+    const from = arr.findIndex((m) => m.id === fromId);
+    const to = arr.findIndex((m) => m.id === toId);
+    if (from < 0 || to < 0) return;
+    const [moved] = arr.splice(from, 1);
+    arr.splice(to, 0, moved);
+    commitDoc({ ...doc, memos: arr }, true);
+  };
+
   const confirmDelete = () => {
     if (!pendingDeleteId) return;
     const remain = doc.memos.filter((m) => m.id !== pendingDeleteId);
@@ -264,10 +278,37 @@ export default function Memo() {
           ) : (
             <div
               key={tab.id}
-              className={"memo-tab" + (tab.id === doc.activeId ? " active" : "")}
+              className={
+                "memo-tab" +
+                (tab.id === doc.activeId ? " active" : "") +
+                (dragOverId === tab.id ? " drag-over" : "")
+              }
+              draggable
               onClick={() => setActive(tab.id)}
               onDoubleClick={() => startRename(tab)}
-              title="더블클릭하여 이름 변경"
+              onDragStart={(e) => {
+                dragId.current = tab.id;
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (dragId.current && dragOverId !== tab.id) setDragOverId(tab.id);
+              }}
+              onDragLeave={() => {
+                if (dragOverId === tab.id) setDragOverId(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId.current) reorder(dragId.current, tab.id);
+                dragId.current = null;
+                setDragOverId(null);
+              }}
+              onDragEnd={() => {
+                dragId.current = null;
+                setDragOverId(null);
+              }}
+              title="더블클릭하여 이름 변경 · 드래그하여 순서 변경"
             >
               <span className="memo-tab-name">{tab.name}</span>
               <button
