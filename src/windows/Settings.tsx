@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { LogicalSize } from "@tauri-apps/api/dpi";
+import { listen } from "@tauri-apps/api/event";
 import {
   appVersion,
   defaultSettings,
@@ -217,6 +218,16 @@ export default function Settings() {
       .catch((e) => setError(String(e)));
     getDataDir().then(setDataDir).catch(() => {});
     appVersion().then(setVersion).catch(() => {});
+  }, []);
+
+  // 다른 창(메인 패널·메모)이나 이 창의 크기 변경이 저장되면 표시 값도 즉시 갱신. (D-28)
+  useEffect(() => {
+    let un: (() => void) | undefined;
+    void listen<AppSettings>("settings-changed", (e) => {
+      setSettings(e.payload);
+      applyTheme(e.payload, e.payload.settingsFontSize);
+    }).then((u) => (un = u));
+    return () => un?.();
   }, []);
 
   // 로컬 즉시 미리보기 + 디바운스 저장(저장 성공 시 Rust가 settings-changed emit → 타 창 반영)

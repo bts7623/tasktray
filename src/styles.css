@@ -764,7 +764,8 @@ body.main-window {
 }
 
 .settings {
-  max-width: 460px;
+  /* 창 폭에 맞춰 내부 콘텐츠가 늘어나도록 폭 제한 없음 (D-28) */
+  max-width: none;
 }
 
 .setting-group {
