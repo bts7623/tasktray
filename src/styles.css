@@ -1396,6 +1396,7 @@ body.main-window {
   background: var(--bg);
   color: var(--fg);
   font-family: inherit;
-  font-size: 0.92rem;
+  /* 메모 글자 크기(memoFontSize)를 root 폰트로 주입 → 1rem 이 그 값과 일치 (D-25) */
+  font-size: 1rem;
   line-height: 1.5;
 }

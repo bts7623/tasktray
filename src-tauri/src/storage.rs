@@ -108,6 +108,16 @@ pub struct Settings {
     /// 개인 메모 팝업 창 크기. (D-24)
     #[serde(default = "default_memo")]
     pub memo: MemoSize,
+    /// 메모 글자 크기(px). 앱 화면·환경설정과 별도. (D-25)
+    #[serde(default = "default_font_size")]
+    pub memo_font_size: u32,
+    /// 환경설정 창 글자 크기(px). 앱 화면·메모와 별도. (D-25)
+    #[serde(default = "default_font_size")]
+    pub settings_font_size: u32,
+}
+
+fn default_font_size() -> u32 {
+    14
 }
 
 fn default_shortcut() -> String {
@@ -148,6 +158,8 @@ impl Default for Settings {
             opacity: default_opacity(),
             category_colors: HashMap::new(),
             memo: default_memo(),
+            memo_font_size: default_font_size(),
+            settings_font_size: default_font_size(),
         }
     }
 }

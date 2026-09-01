@@ -71,9 +71,10 @@ export default function Settings() {
   }, []);
 
   // 로컬 즉시 미리보기 + 디바운스 저장(저장 성공 시 Rust가 settings-changed emit → 타 창 반영)
+  // 이 창(환경설정)은 자기 폰트 크기(settingsFontSize)로 미리보기한다. (D-25)
   const commit = (next: AppSettings) => {
     setSettings(next);
-    applyTheme(next);
+    applyTheme(next, next.settingsFontSize);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       saveSettings(next).catch((e) => setError(String(e)));
@@ -183,7 +184,7 @@ export default function Settings() {
           />
         </div>
         <div className="setting-item">
-          <span>글자 크기</span>
+          <span>화면 글자 크기</span>
           <div className="inline">
             <input
               type="number"
@@ -198,6 +199,55 @@ export default function Settings() {
                   key={p.size}
                   className={"btn-sm" + (settings.theme.fontSize === p.size ? "" : " ghost")}
                   onClick={() => setTheme({ fontSize: p.size })}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* 메모·환경설정 글자 크기는 각각 별도(D-25) */}
+        <div className="setting-item">
+          <span>메모 글자 크기</span>
+          <div className="inline">
+            <input
+              type="number"
+              min={10}
+              max={28}
+              value={settings.memoFontSize}
+              onChange={(e) => commit({ ...settings, memoFontSize: Number(e.target.value) || 14 })}
+            />
+            <div className="preset-group">
+              {FONT_PRESETS.map((p) => (
+                <button
+                  key={p.size}
+                  className={"btn-sm" + (settings.memoFontSize === p.size ? "" : " ghost")}
+                  onClick={() => commit({ ...settings, memoFontSize: p.size })}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="setting-item">
+          <span>환경설정 글자 크기</span>
+          <div className="inline">
+            <input
+              type="number"
+              min={10}
+              max={24}
+              value={settings.settingsFontSize}
+              onChange={(e) =>
+                commit({ ...settings, settingsFontSize: Number(e.target.value) || 14 })
+              }
+            />
+            <div className="preset-group">
+              {FONT_PRESETS.map((p) => (
+                <button
+                  key={p.size}
+                  className={"btn-sm" + (settings.settingsFontSize === p.size ? "" : " ghost")}
+                  onClick={() => commit({ ...settings, settingsFontSize: p.size })}
                 >
                   {p.label}
                 </button>

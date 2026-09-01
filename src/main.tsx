@@ -10,7 +10,7 @@ import Memo from "./windows/Memo";
 import FeedbackAdmin from "./feedback/FeedbackAdmin";
 import WebApp from "./web/WebApp";
 import { getSettings, type Settings as AppSettings } from "./api";
-import { applyTheme } from "./theme";
+import { applyTheme, fontSizeForWindow } from "./theme";
 import { isTauri } from "./platform";
 import "./styles.css";
 
@@ -38,12 +38,21 @@ if (!isTauri) {
 
 // 데스크톱(Tauri) 전용 부트스트랩: 테마 적용·변경 수신·투명 배경. 웹에서는 건너뛴다.
 if (isTauri) {
-  getSettings()
-    .then(applyTheme)
-    .catch(() => {});
-  listen<AppSettings>("settings-changed", (e) => applyTheme(e.payload)).catch(() => {});
+  // 창 라벨을 먼저 구해 창별 폰트 크기(메모/환경설정 별도)를 적용한다. (D-25)
+  let winLabel = "main";
   try {
-    if (getCurrentWindow().label === "main") {
+    winLabel = getCurrentWindow().label;
+  } catch {
+    /* 기본값 유지 */
+  }
+  getSettings()
+    .then((s) => applyTheme(s, fontSizeForWindow(winLabel, s)))
+    .catch(() => {});
+  listen<AppSettings>("settings-changed", (e) =>
+    applyTheme(e.payload, fontSizeForWindow(winLabel, e.payload)),
+  ).catch(() => {});
+  try {
+    if (winLabel === "main") {
       document.body.classList.add("main-window");
     }
   } catch {

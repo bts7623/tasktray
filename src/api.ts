@@ -32,6 +32,10 @@ export interface Settings {
   opacity: number;
   categoryColors: Record<string, string>;
   memo: MemoSize;
+  /** 메모 글자 크기(px). 앱 화면·환경설정과 별도. (D-25) */
+  memoFontSize: number;
+  /** 환경설정 창 글자 크기(px). 앱 화면·메모와 별도. (D-25) */
+  settingsFontSize: number;
 }
 
 export interface Task {
@@ -125,5 +129,7 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     opacity: 1,
     categoryColors: {},
     memo: { width: 400, height: 520 },
+    memoFontSize: 14,
+    settingsFontSize: 14,
   };
 }

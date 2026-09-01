@@ -14,7 +14,11 @@ function isLightBg(hex: string): boolean {
   return 0.299 * r + 0.587 * g + 0.114 * b > 150;
 }
 
-export function applyTheme(settings: Settings): void {
+/**
+ * 테마를 현재 창에 적용한다.
+ * @param fontOverride 창별 폰트 크기(px). 지정 시 theme.fontSize 대신 사용(메모·환경설정 창). (D-25)
+ */
+export function applyTheme(settings: Settings, fontOverride?: number): void {
   const root = document.documentElement;
   const { backgroundColor, textColor, fontSize } = settings.theme;
   root.style.setProperty("--bg", backgroundColor);
@@ -24,5 +28,12 @@ export function applyTheme(settings: Settings): void {
   // 패널 불투명도(메인 창의 .panel 에만 적용됨). 0.4~1.0.
   root.style.setProperty("--panel-opacity", String(settings.opacity ?? 1));
   // 루트 폰트 크기(rem 기준). 컴포넌트들은 rem/em 로 스케일된다.
-  root.style.fontSize = `${fontSize}px`;
+  root.style.fontSize = `${fontOverride ?? fontSize}px`;
+}
+
+/** 창 라벨에 맞는 폰트 크기(px)를 고른다. 메모/환경설정은 별도 값, 그 외는 앱 화면 값. (D-25) */
+export function fontSizeForWindow(label: string, settings: Settings): number {
+  if (label === "memo") return settings.memoFontSize ?? settings.theme.fontSize;
+  if (label === "settings") return settings.settingsFontSize ?? settings.theme.fontSize;
+  return settings.theme.fontSize;
 }
