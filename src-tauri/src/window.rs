@@ -88,16 +88,41 @@ pub fn toggle_panel(app: &AppHandle) {
     }
 }
 
-/// [환경설정]: 별도 창으로 표시 (요구사항 결정 D-02). 크기는 설정값을 따른다. (D-27)
+/// 저장된 위치가 유효하면 그 위치로, 아니면 화면 중앙에 배치한다. (D-28)
+fn position_or_center(app: &AppHandle, win: &WebviewWindow, x: Option<i32>, y: Option<i32>) {
+    match (x, y) {
+        (Some(x), Some(y)) if point_on_any_monitor(app, x, y) => {
+            let _ = win.set_position(PhysicalPosition::new(x, y));
+        }
+        _ => {
+            let _ = win.center();
+        }
+    }
+}
+
+/// [환경설정]: 별도 창으로 표시 (D-02). 크기·위치를 설정값으로 복원. 깜빡임 방지를 위해
+/// 숨긴 채 생성→위치 지정→표시. (D-27/D-28)
 pub fn open_settings(app: &AppHandle) {
+    if let Some(win) = app.get_webview_window("settings") {
+        let _ = win.unminimize();
+        let _ = win.show();
+        let _ = win.set_focus();
+        return;
+    }
     let s = storage::load_settings(app);
-    show_or_create(
-        app,
-        "settings",
-        "TaskTray - 환경설정",
-        s.settings_size.width as f64,
-        s.settings_size.height as f64,
-    );
+    let built = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
+        .title("TaskTray - 환경설정")
+        .inner_size(s.settings_size.width as f64, s.settings_size.height as f64)
+        .min_inner_size(360.0, 360.0)
+        .resizable(true)
+        .skip_taskbar(false)
+        .visible(false)
+        .build();
+    if let Ok(win) = built {
+        position_or_center(app, &win, s.settings_size.x, s.settings_size.y);
+        let _ = win.show();
+        let _ = win.set_focus();
+    }
 }
 
 /// [로우데이터 보기]: 별도 창으로 표시 (요구사항 결정 D-02)
@@ -125,6 +150,7 @@ pub fn open_memo(app: &AppHandle) {
         return;
     }
     let s = storage::load_settings(app);
+    // 깜빡임 방지: 숨긴 채 생성 → 위치 지정 → 표시. (D-28)
     let built = WebviewWindowBuilder::new(app, "memo", WebviewUrl::App("index.html".into()))
         .title("TaskTray - 메모")
         .inner_size(s.memo.width as f64, s.memo.height as f64)
@@ -133,17 +159,12 @@ pub fn open_memo(app: &AppHandle) {
         .skip_taskbar(false)
         // OS 파일 드롭 핸들러가 페이지 내 HTML5 드래그(탭 순서 변경)를 가로채지 않도록 끈다.
         .disable_drag_drop_handler()
+        .visible(false)
         .build();
-    // 저장된 위치가 있고 연결된 모니터 안이면 그 위치로, 아니면 화면 중앙. (D-28)
     if let Ok(win) = built {
-        match (s.memo.x, s.memo.y) {
-            (Some(x), Some(y)) if point_on_any_monitor(app, x, y) => {
-                let _ = win.set_position(PhysicalPosition::new(x, y));
-            }
-            _ => {
-                let _ = win.center();
-            }
-        }
+        position_or_center(app, &win, s.memo.x, s.memo.y);
+        let _ = win.show();
+        let _ = win.set_focus();
     }
 }
 

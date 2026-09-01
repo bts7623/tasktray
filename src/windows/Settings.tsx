@@ -260,13 +260,41 @@ export default function Settings() {
         ) {
           return; // 프로그램적 리사이즈 → 저장 생략(루프 방지)
         }
-        commit({ ...cur, settingsSize: { width, height } });
+        commit({ ...cur, settingsSize: { ...cur.settingsSize, width, height } });
       } catch {
         /* 무시 */
       }
     };
     void w
       .onResized(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => void save(), 400);
+      })
+      .then((u) => (un = u));
+    return () => {
+      if (timer) clearTimeout(timer);
+      un?.();
+    };
+  }, []);
+
+  // 환경설정 창을 옮기면 위치를 저장 → 다시 열 때 같은 자리에서 뜬다. (D-28)
+  useEffect(() => {
+    const w = getCurrentWindow();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let un: (() => void) | undefined;
+    const save = async () => {
+      try {
+        const pos = await w.outerPosition(); // 물리 좌표
+        const cur = settingsRef.current;
+        if (!cur) return;
+        if (cur.settingsSize.x === pos.x && cur.settingsSize.y === pos.y) return;
+        commit({ ...cur, settingsSize: { ...cur.settingsSize, x: pos.x, y: pos.y } });
+      } catch {
+        /* 무시 */
+      }
+    };
+    void w
+      .onMoved(() => {
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => void save(), 400);
       })
