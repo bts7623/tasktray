@@ -88,9 +88,16 @@ pub fn toggle_panel(app: &AppHandle) {
     }
 }
 
-/// [환경설정]: 별도 창으로 표시 (요구사항 결정 D-02)
+/// [환경설정]: 별도 창으로 표시 (요구사항 결정 D-02). 크기는 설정값을 따른다. (D-27)
 pub fn open_settings(app: &AppHandle) {
-    show_or_create(app, "settings", "TaskTray - 환경설정", 500.0, 780.0);
+    let s = storage::load_settings(app);
+    show_or_create(
+        app,
+        "settings",
+        "TaskTray - 환경설정",
+        s.settings_size.width as f64,
+        s.settings_size.height as f64,
+    );
 }
 
 /// [로우데이터 보기]: 별도 창으로 표시 (요구사항 결정 D-02)
@@ -124,6 +131,8 @@ pub fn open_memo(app: &AppHandle) {
         .min_inner_size(240.0, 240.0)
         .resizable(true)
         .skip_taskbar(false)
+        // OS 파일 드롭 핸들러가 페이지 내 HTML5 드래그(탭 순서 변경)를 가로채지 않도록 끈다.
+        .disable_drag_drop_handler()
         .center()
         .build();
 }

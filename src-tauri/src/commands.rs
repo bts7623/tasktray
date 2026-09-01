@@ -132,13 +132,19 @@ pub fn save_memo(app: AppHandle, contents: String) -> Result<(), String> {
     storage::save_memo(&app, &contents)
 }
 
-/// 글로벌 단축키 변경. 기존 것을 해제하고 새 것을 등록한다.
+/// 글로벌 단축키 변경. kind: "panel" | "settings" | "memo". (D-27)
+/// 해당 종류의 기존 단축키를 해제하고 새 것을 등록한다.
 /// 이미 다른 프로그램이 점유한 키면 등록이 실패하므로, 실패 시 이전 키로 되돌리고 에러를 반환한다.
 /// (충돌 감지: 어떤 프로그램인지 이름은 알 수 없고 "사용 중" 여부만 판별 가능)
 #[tauri::command]
-pub fn set_shortcut(app: AppHandle, accelerator: String) -> Result<(), String> {
+pub fn set_shortcut(app: AppHandle, kind: String, accelerator: String) -> Result<(), String> {
     let gs = app.global_shortcut();
-    let old = storage::load_settings(&app).shortcut;
+    let s = storage::load_settings(&app);
+    let old = match kind.as_str() {
+        "settings" => s.shortcut_settings,
+        "memo" => s.shortcut_memo,
+        _ => s.shortcut,
+    };
 
     // 기존 단축키 해제(있으면)
     let _ = gs.unregister(old.as_str());

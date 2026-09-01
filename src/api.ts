@@ -28,10 +28,16 @@ export interface Settings {
   autoStart: boolean;
   titleAutoParse: boolean;
   shortcut: string;
+  /** 환경설정 창 열기 단축키. (D-27) */
+  shortcutSettings: string;
+  /** 개인 메모 창 열기 단축키. (D-27) */
+  shortcutMemo: string;
   alwaysOnTop: boolean;
   opacity: number;
   categoryColors: Record<string, string>;
   memo: MemoSize;
+  /** 환경설정 창 크기. (D-27) */
+  settingsSize: MemoSize;
   /** 메모 글자 크기(px). 앱 화면·환경설정과 별도. (D-25) */
   memoFontSize: number;
   /** 환경설정 창 글자 크기(px). 앱 화면·메모와 별도. (D-25) */
@@ -91,9 +97,9 @@ export const setAutostart = (enabled: boolean) =>
 /** 앱 버전 문자열 (NFR-04). */
 export const appVersion = () => invoke<string>("app_version");
 
-/** 글로벌 단축키 변경(충돌 시 에러 반환). */
-export const setShortcut = (accelerator: string) =>
-  invoke<void>("set_shortcut", { accelerator });
+/** 글로벌 단축키 변경(충돌 시 에러 반환). kind: "panel" | "settings" | "memo". (D-27) */
+export const setShortcut = (kind: "panel" | "settings" | "memo", accelerator: string) =>
+  invoke<void>("set_shortcut", { kind, accelerator });
 
 /** 패널 항상 위 고정(압정) 설정. */
 export const setPanelPinned = (pinned: boolean) =>
@@ -125,10 +131,13 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     autoStart: false,
     titleAutoParse: false,
     shortcut: "Ctrl+Alt+Space",
+    shortcutSettings: "Ctrl+Alt+S",
+    shortcutMemo: "Ctrl+Alt+M",
     alwaysOnTop: false,
     opacity: 1,
     categoryColors: {},
     memo: { width: 400, height: 520 },
+    settingsSize: { width: 500, height: 780 },
     memoFontSize: 14,
     settingsFontSize: 14,
   };

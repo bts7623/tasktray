@@ -289,6 +289,8 @@ export default function Memo() {
               onDragStart={(e) => {
                 dragId.current = tab.id;
                 e.dataTransfer.effectAllowed = "move";
+                // 일부 WebView 는 setData 가 없으면 드래그가 시작되지 않는다.
+                e.dataTransfer.setData("text/plain", tab.id);
               }}
               onDragOver={(e) => {
                 e.preventDefault();

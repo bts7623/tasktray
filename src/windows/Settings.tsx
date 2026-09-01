@@ -3,6 +3,8 @@
 // settings.json 에 저장된다(FR-26). 저장은 과도한 디스크 쓰기를 막기 위해 짧게 디바운스.
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { LogicalSize } from "@tauri-apps/api/dpi";
 import {
   appVersion,
   defaultSettings,
@@ -18,6 +20,72 @@ import {
 import { applyTheme } from "../theme";
 import SyncSettings from "../components/SyncSettings";
 import FeedbackForm from "../feedback/FeedbackForm";
+
+/** 단축키 한 줄(라벨 + 현재값 + 변경). 캡처 상태는 행마다 독립. (D-27) */
+function ShortcutRow({
+  label,
+  value,
+  kind,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  kind: "panel" | "settings" | "memo";
+  onChange: (acc: string) => void;
+}) {
+  const [capturing, setCapturing] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const onKey = (e: KeyboardEvent) => {
+    e.preventDefault();
+    if (e.key === "Escape") {
+      setCapturing(false);
+      return;
+    }
+    const acc = toAccelerator(e);
+    if (!acc) return; // 수식키 단독 등 — 계속 대기
+    void (async () => {
+      try {
+        await setShortcut(kind, acc); // 등록 성공해야 저장
+        onChange(acc);
+        setErr(null);
+        setCapturing(false);
+      } catch (er) {
+        setErr(String(er));
+      }
+    })();
+  };
+  return (
+    <div className="shortcut-row">
+      <div className="setting-item">
+        <span>{label}</span>
+        <div className="inline">
+          {capturing ? (
+            <input
+              className="shortcut-capture"
+              readOnly
+              value="키 조합을 누르세요…"
+              autoFocus
+              onKeyDown={onKey}
+              onBlur={() => setCapturing(false)}
+            />
+          ) : (
+            <code className="shortcut-view">{value}</code>
+          )}
+          <button
+            className="btn-sm"
+            onClick={() => {
+              setErr(null);
+              setCapturing((v) => !v);
+            }}
+          >
+            {capturing ? "취소" : "변경"}
+          </button>
+        </div>
+      </div>
+      {err && <div className="setting-error">{err}</div>}
+    </div>
+  );
+}
 
 /** KeyboardEvent → Tauri 액셀러레이터 문자열. 수식키 없거나 수식키 단독이면 null. */
 function toAccelerator(e: KeyboardEvent): string | null {
@@ -60,12 +128,22 @@ export default function Settings() {
   const [dataDir, setDataDir] = useState("");
   const [version, setVersion] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [capturing, setCapturing] = useState(false);
-  const [shortcutError, setShortcutError] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 이 창(환경설정)의 크기를 설정값에 맞춘다. (D-27)
+  const applySettingsSize = (s: AppSettings) => {
+    getCurrentWindow()
+      .setSize(new LogicalSize(s.settingsSize.width, s.settingsSize.height))
+      .catch(() => {});
+  };
+
   useEffect(() => {
-    getSettings().then(setSettings).catch((e) => setError(String(e)));
+    getSettings()
+      .then((s) => {
+        setSettings(s);
+        applySettingsSize(s);
+      })
+      .catch((e) => setError(String(e)));
     getDataDir().then(setDataDir).catch(() => {});
     appVersion().then(setVersion).catch(() => {});
   }, []);
@@ -99,6 +177,12 @@ export default function Settings() {
   const setMemo = (patch: Partial<AppSettings["memo"]>) =>
     commit({ ...settings, memo: { ...settings.memo, ...patch } });
 
+  const setSettingsSize = (patch: Partial<AppSettings["settingsSize"]>) => {
+    const next = { ...settings, settingsSize: { ...settings.settingsSize, ...patch } };
+    commit(next);
+    applySettingsSize(next); // 이 창에 즉시 반영
+  };
+
   const toggleAutostart = async (enabled: boolean) => {
     try {
       await setAutostart(enabled); // 레지스트리 등록/해제 (FR-27)
@@ -112,29 +196,12 @@ export default function Settings() {
     // dataPath 는 자동 관리 값 유지 (D-08)
     const next: AppSettings = { ...defaultSettings(), dataPath: settings.dataPath };
     commit(next);
+    applySettingsSize(next);
     void setAutostart(false).catch((e) => setError(String(e)));
-    void setShortcut(next.shortcut).catch((e) => setShortcutError(String(e)));
-  };
-
-  // 단축키 캡처: 키 조합을 눌러 즉시 등록 시도. 충돌/실패 시 에러 표시(이전 값 유지).
-  const onCaptureKey = (e: KeyboardEvent) => {
-    e.preventDefault();
-    if (e.key === "Escape") {
-      setCapturing(false);
-      return;
-    }
-    const acc = toAccelerator(e);
-    if (!acc) return; // 수식키 단독 등 — 계속 대기
-    void (async () => {
-      try {
-        await setShortcut(acc); // 등록 성공해야 저장
-        commit({ ...settings, shortcut: acc });
-        setShortcutError(null);
-        setCapturing(false);
-      } catch (err) {
-        setShortcutError(String(err));
-      }
-    })();
+    // 단축키 3종 모두 기본값으로 재등록
+    void setShortcut("panel", next.shortcut).catch((e) => setError(String(e)));
+    void setShortcut("settings", next.shortcutSettings).catch((e) => setError(String(e)));
+    void setShortcut("memo", next.shortcutMemo).catch((e) => setError(String(e)));
   };
 
   return (
@@ -306,7 +373,57 @@ export default function Settings() {
               />
             </label>
           </div>
+          <div className="size-row">
+            <span className="size-label">환경설정 크기 (px)</span>
+            <label className="size-field">
+              가로
+              <input
+                type="number"
+                min={300}
+                max={1400}
+                value={settings.settingsSize.width}
+                onChange={(e) => setSettingsSize({ width: Number(e.target.value) || 500 })}
+              />
+            </label>
+            <label className="size-field">
+              세로
+              <input
+                type="number"
+                min={300}
+                max={1600}
+                value={settings.settingsSize.height}
+                onChange={(e) => setSettingsSize({ height: Number(e.target.value) || 780 })}
+              />
+            </label>
+          </div>
         </div>
+      </section>
+
+      {/* 글로벌 단축키 (사용자 확장, D-27). 동작 영역 위로 이동 + 항목별 3줄 */}
+      <section className="setting-group">
+        <div className="setting-label">글로벌 단축키</div>
+        <ShortcutRow
+          label="패널 열기/닫기"
+          value={settings.shortcut}
+          kind="panel"
+          onChange={(acc) => commit({ ...settings, shortcut: acc })}
+        />
+        <ShortcutRow
+          label="환경설정 열기"
+          value={settings.shortcutSettings}
+          kind="settings"
+          onChange={(acc) => commit({ ...settings, shortcutSettings: acc })}
+        />
+        <ShortcutRow
+          label="메모 열기"
+          value={settings.shortcutMemo}
+          kind="memo"
+          onChange={(acc) => commit({ ...settings, shortcutMemo: acc })}
+        />
+        <p className="setting-desc">
+          Ctrl·Alt·Shift·Win 중 하나 이상 + 키 조합. 다른 프로그램이나 다른 항목이 이미 쓰는 조합이면
+          등록되지 않고 알림이 표시됩니다. (충돌 시 어떤 프로그램인지 이름까지는 확인 불가)
+        </p>
       </section>
 
       {/* 동작 (FR-24 ⑤⑦) */}
@@ -328,42 +445,6 @@ export default function Settings() {
             onChange={(e) => commit({ ...settings, titleAutoParse: e.target.checked })}
           />
         </label>
-      </section>
-
-      {/* 글로벌 단축키 (사용자 확장) */}
-      <section className="setting-group">
-        <div className="setting-label">패널 열기/닫기 단축키</div>
-        <div className="setting-item">
-          <span>현재 단축키</span>
-          <div className="inline">
-            {capturing ? (
-              <input
-                className="shortcut-capture"
-                readOnly
-                value="키 조합을 누르세요…"
-                autoFocus
-                onKeyDown={onCaptureKey}
-                onBlur={() => setCapturing(false)}
-              />
-            ) : (
-              <code className="shortcut-view">{settings.shortcut}</code>
-            )}
-            <button
-              className="btn-sm"
-              onClick={() => {
-                setShortcutError(null);
-                setCapturing((v) => !v);
-              }}
-            >
-              {capturing ? "취소" : "변경"}
-            </button>
-          </div>
-        </div>
-        {shortcutError && <div className="setting-error">{shortcutError}</div>}
-        <p className="setting-desc">
-          Ctrl·Alt·Shift·Win 중 하나 이상 + 키 조합. 다른 프로그램이 이미 쓰는 조합이면 등록되지 않고
-          알림이 표시됩니다. (충돌 시 어떤 프로그램인지 이름까지는 확인 불가)
-        </p>
       </section>
 
       {/* 데이터 저장 폴더 (FR-24 ⑥, D-08) */}

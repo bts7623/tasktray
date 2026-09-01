@@ -13,7 +13,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use tauri::Manager;
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 /// 앱 전역 상태.
 /// `suppress_panel_hide`: 네이티브 다이얼로그(폴더 선택/파일 저장) 등으로 패널이
@@ -39,11 +39,27 @@ pub fn run() {
             None, // 시작 인자 없음
         ))
         .plugin(
-            // 글로벌 단축키: 눌림(Pressed) 시 패널 토글 (사용자 확장 기능)
+            // 글로벌 단축키: 눌림(Pressed) 시 어떤 단축키인지 판별해 분기 (패널/환경설정/메모, D-27)
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _shortcut, event| {
-                    if event.state == ShortcutState::Pressed {
+                .with_handler(|app, shortcut, event| {
+                    if event.state != ShortcutState::Pressed {
+                        return;
+                    }
+                    let s = storage::load_settings(app);
+                    let is = |acc: &str| {
+                        acc.parse::<Shortcut>()
+                            .map(|sc| &sc == shortcut)
+                            .unwrap_or(false)
+                    };
+                    if is(&s.shortcut) {
                         window::toggle_panel(app);
+                    } else if is(&s.shortcut_settings) {
+                        // 창 생성은 메인 스레드에서(데드락 방지, D-20)
+                        let a = app.clone();
+                        let _ = app.run_on_main_thread(move || window::open_settings(&a));
+                    } else if is(&s.shortcut_memo) {
+                        let a = app.clone();
+                        let _ = app.run_on_main_thread(move || window::open_memo(&a));
                     }
                 })
                 .build(),
@@ -91,8 +107,14 @@ pub fn run() {
                 launcher.disable()
             };
 
-            // 글로벌 단축키 등록 + 압정(항상 위) 상태 적용
+            // 글로벌 단축키 등록(패널/환경설정/메모) + 압정(항상 위) 상태 적용
             let _ = app.global_shortcut().register(settings.shortcut.as_str());
+            let _ = app
+                .global_shortcut()
+                .register(settings.shortcut_settings.as_str());
+            let _ = app
+                .global_shortcut()
+                .register(settings.shortcut_memo.as_str());
             if let Some(state) = app.try_state::<AppState>() {
                 state.panel_pinned.store(settings.always_on_top, Ordering::SeqCst);
             }

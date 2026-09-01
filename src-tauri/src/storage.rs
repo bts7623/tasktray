@@ -96,6 +96,12 @@ pub struct Settings {
     /// 패널 열기/닫기 글로벌 단축키 (예: "Ctrl+Alt+Space"). 사용자 확장 기능.
     #[serde(default = "default_shortcut")]
     pub shortcut: String,
+    /// 환경설정 창 열기 글로벌 단축키. (D-27)
+    #[serde(default = "default_shortcut_settings")]
+    pub shortcut_settings: String,
+    /// 개인 메모 창 열기 글로벌 단축키. (D-27)
+    #[serde(default = "default_shortcut_memo")]
+    pub shortcut_memo: String,
     /// 패널 항상 위 고정(압정) 여부. 기본 Off(UI-08 확장, opt-in).
     #[serde(default)]
     pub always_on_top: bool,
@@ -108,6 +114,9 @@ pub struct Settings {
     /// 개인 메모 팝업 창 크기. (D-24)
     #[serde(default = "default_memo")]
     pub memo: MemoSize,
+    /// 환경설정 창 크기. (D-27)
+    #[serde(default = "default_settings_size")]
+    pub settings_size: MemoSize,
     /// 메모 글자 크기(px). 앱 화면·환경설정과 별도. (D-25)
     #[serde(default = "default_font_size")]
     pub memo_font_size: u32,
@@ -118,6 +127,21 @@ pub struct Settings {
 
 fn default_font_size() -> u32 {
     14
+}
+
+fn default_shortcut_settings() -> String {
+    "Ctrl+Alt+S".to_string()
+}
+
+fn default_shortcut_memo() -> String {
+    "Ctrl+Alt+M".to_string()
+}
+
+fn default_settings_size() -> MemoSize {
+    MemoSize {
+        width: 500,
+        height: 780,
+    }
 }
 
 fn default_shortcut() -> String {
@@ -154,10 +178,13 @@ impl Default for Settings {
             auto_start: false,
             title_auto_parse: false,
             shortcut: default_shortcut(),
+            shortcut_settings: default_shortcut_settings(),
+            shortcut_memo: default_shortcut_memo(),
             always_on_top: false,
             opacity: default_opacity(),
             category_colors: HashMap::new(),
             memo: default_memo(),
+            settings_size: default_settings_size(),
             memo_font_size: default_font_size(),
             settings_font_size: default_font_size(),
         }
