@@ -112,6 +112,13 @@ body.main-window {
   opacity: 1;
 }
 
+/* 헤더 아이콘(환경설정·메모)은 화면 글자 크기에 따라 함께 커지도록 em 기준 (D-25 보완) */
+.gear-btn svg,
+.memo-btn svg {
+  width: 1.35em;
+  height: 1.35em;
+}
+
 .opacity-slider {
   width: 68px;
   height: 4px;
@@ -1366,23 +1373,92 @@ body.main-window {
   opacity: 0.7;
 }
 
-.memo-bar {
+/* 메모 상단 가로 탭 (D-26) */
+.memo-tabs {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  scrollbar-width: thin;
+}
+
+.memo-tab {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
+  gap: 4px;
+  max-width: 160px;
+  padding: 6px 8px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.65;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.memo-tab.active {
+  opacity: 1;
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+.memo-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.memo-tab-close {
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  opacity: 0.45;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 0.95rem;
+  padding: 0 2px;
+}
+
+.memo-tab-close:hover {
+  opacity: 1;
+}
+
+.memo-tab-add {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 12px;
+  opacity: 0.7;
+}
+
+.memo-tab-add:hover {
+  opacity: 1;
+}
+
+.memo-tabname-input {
+  flex: 0 0 auto;
+  width: 100px;
+  margin: 4px 2px;
+  padding: 2px 4px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
   font-size: 0.8rem;
 }
 
-.memo-bar-title {
-  font-weight: 600;
-  opacity: 0.85;
-}
-
-.memo-save {
-  font-size: 0.74rem;
-  opacity: 0.6;
+.memo-status {
+  padding: 3px 10px;
+  text-align: right;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  min-height: 1em;
 }
 
 .memo-area {
