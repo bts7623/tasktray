@@ -19,6 +19,8 @@ export interface WindowSize {
 export interface MemoSize {
   width: number;
   height: number;
+  x?: number | null;
+  y?: number | null;
 }
 
 export interface Settings {

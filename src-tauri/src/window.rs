@@ -125,7 +125,7 @@ pub fn open_memo(app: &AppHandle) {
         return;
     }
     let s = storage::load_settings(app);
-    let _ = WebviewWindowBuilder::new(app, "memo", WebviewUrl::App("index.html".into()))
+    let built = WebviewWindowBuilder::new(app, "memo", WebviewUrl::App("index.html".into()))
         .title("TaskTray - 메모")
         .inner_size(s.memo.width as f64, s.memo.height as f64)
         .min_inner_size(240.0, 240.0)
@@ -133,8 +133,18 @@ pub fn open_memo(app: &AppHandle) {
         .skip_taskbar(false)
         // OS 파일 드롭 핸들러가 페이지 내 HTML5 드래그(탭 순서 변경)를 가로채지 않도록 끈다.
         .disable_drag_drop_handler()
-        .center()
         .build();
+    // 저장된 위치가 있고 연결된 모니터 안이면 그 위치로, 아니면 화면 중앙. (D-28)
+    if let Ok(win) = built {
+        match (s.memo.x, s.memo.y) {
+            (Some(x), Some(y)) if point_on_any_monitor(app, x, y) => {
+                let _ = win.set_position(PhysicalPosition::new(x, y));
+            }
+            _ => {
+                let _ = win.center();
+            }
+        }
+    }
 }
 
 /// [TaskTray 제거]: 설치 폴더의 uninstall.exe 를 실행하고 앱을 종료한다.

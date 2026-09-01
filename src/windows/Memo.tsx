@@ -6,12 +6,15 @@
 // 전체 구조(JSON)를 통째로 암호화해 저장한다.
 
 import { useEffect, useRef, useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
+  getSettings,
   memoLock,
   memoMarkUnlocked,
   memoSessionValid,
   readMemo,
   saveMemo,
+  saveSettings,
 } from "../api";
 import { supabase, supabaseConfigured } from "../supabase";
 import { decryptMemo, encryptMemo } from "../memo/crypto";
@@ -76,7 +79,41 @@ export default function Memo() {
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   // 창 크기 ↔ 설정 동기화(드래그 시 자동 저장 + 슬라이더 변경 시 실시간 반영). (D-28)
-  useEffect(() => syncWindowSize((s) => s.memo, (s, size) => ({ ...s, memo: size })), []);
+  useEffect(
+    () =>
+      syncWindowSize(
+        (s) => s.memo,
+        (s, size) => ({ ...s, memo: { ...s.memo, width: size.width, height: size.height } }),
+      ),
+    [],
+  );
+
+  // 창을 옮기면 위치를 저장 → 다시 열 때 같은 자리에서 뜬다. (D-28)
+  useEffect(() => {
+    const w = getCurrentWindow();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let un: (() => void) | undefined;
+    const save = async () => {
+      try {
+        const pos = await w.outerPosition(); // 물리 좌표
+        const s = await getSettings();
+        if (s.memo.x === pos.x && s.memo.y === pos.y) return;
+        await saveSettings({ ...s, memo: { ...s.memo, x: pos.x, y: pos.y } });
+      } catch {
+        /* 무시 */
+      }
+    };
+    void w
+      .onMoved(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => void save(), 500);
+      })
+      .then((u) => (un = u));
+    return () => {
+      if (timer) clearTimeout(timer);
+      un?.();
+    };
+  }, []);
 
   // 암호화된 메모를 읽어 복호화 후 편집기로. 실패 시 복호화 오류 화면.
   const loadIntoEditor = async (mail: string) => {

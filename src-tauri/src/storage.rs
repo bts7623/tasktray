@@ -76,11 +76,16 @@ pub struct WindowSize {
 }
 
 /// 개인 메모 팝업 창의 크기(px). 환경설정에서 조절. (D-24)
+/// x/y 는 사용자가 옮긴 마지막 위치(물리 좌표). 없으면 화면 중앙. (D-28)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MemoSize {
     pub width: u32,
     pub height: u32,
+    #[serde(default)]
+    pub x: Option<i32>,
+    #[serde(default)]
+    pub y: Option<i32>,
 }
 
 /// settings.json 파일 구조. (§6.2)
@@ -144,6 +149,8 @@ fn default_settings_size() -> MemoSize {
     MemoSize {
         width: 500,
         height: 780,
+        x: None,
+        y: None,
     }
 }
 
@@ -159,6 +166,8 @@ fn default_memo() -> MemoSize {
     MemoSize {
         width: 400,
         height: 520,
+        x: None,
+        y: None,
     }
 }
 
