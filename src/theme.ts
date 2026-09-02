@@ -3,6 +3,7 @@
 // color-mix 로 --bg/--fg 에서 자동 파생해 밝은/어두운 배경 모두 자연스럽게 보이도록 한다.
 
 import type { Settings } from "./api";
+import { fontStack } from "./fonts";
 
 /** 배경색이 밝은지 판정(달력 아이콘 등 네이티브 위젯 color-scheme 결정용). */
 function isLightBg(hex: string): boolean {
@@ -29,6 +30,8 @@ export function applyTheme(settings: Settings, fontOverride?: number): void {
   root.style.setProperty("--panel-opacity", String(settings.opacity ?? 1));
   // 루트 폰트 크기(rem 기준). 컴포넌트들은 rem/em 로 스케일된다.
   root.style.fontSize = `${fontOverride ?? fontSize}px`;
+  // 앱 폰트(종류). settings.fontFamily → 폰트 스택. (D-30)
+  root.style.setProperty("--app-font", fontStack(settings.fontFamily));
 }
 
 /** 창 라벨에 맞는 폰트 크기(px)를 고른다. 메모/환경설정은 별도 값, 그 외는 앱 화면 값. (D-25) */

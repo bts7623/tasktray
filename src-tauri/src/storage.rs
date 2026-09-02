@@ -131,6 +131,9 @@ pub struct Settings {
     /// 메모 비밀번호 재입력 주기(분). 0=매번, -1=앱 종료할 때까지, n>0=n분. (D-28)
     #[serde(default)]
     pub memo_lock_minutes: i32,
+    /// 앱 폰트 종류(빈 문자열=시스템 기본). (D-30)
+    #[serde(default)]
+    pub font_family: String,
 }
 
 fn default_font_size() -> u32 {
@@ -200,6 +203,7 @@ impl Default for Settings {
             memo_font_size: default_font_size(),
             settings_font_size: default_font_size(),
             memo_lock_minutes: 0,
+            font_family: String::new(),
         }
     }
 }

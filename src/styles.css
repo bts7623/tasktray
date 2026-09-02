@@ -30,7 +30,7 @@ body,
 }
 
 body {
-  font-family: "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+  font-family: var(--app-font, "Malgun Gothic", "맑은 고딕", system-ui, sans-serif);
   background: var(--bg);
   color: var(--fg);
   user-select: none;
@@ -303,17 +303,20 @@ body.main-window {
   text-decoration: line-through;
 }
 
-/* 새로 등록된(24h 이내) task 표시 배지 (D-29) */
+/* 새로 등록된(24h 이내) task 표시 배지 — 빨간 원 (D-29) */
 .new-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
   margin-right: 5px;
-  padding: 0 5px;
-  border-radius: 8px;
-  background: var(--accent);
+  border-radius: 50%;
+  background: #e5322e;
   color: #fff;
-  font-size: 0.62rem;
+  font-size: 0.5rem;
   font-weight: 700;
-  line-height: 1.5;
+  line-height: 1;
   vertical-align: middle;
 }
 

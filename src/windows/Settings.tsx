@@ -19,6 +19,7 @@ import {
   type Settings as AppSettings,
 } from "../api";
 import { applyTheme } from "../theme";
+import { FONT_OPTIONS } from "../fonts";
 import SyncSettings from "../components/SyncSettings";
 import FeedbackForm from "../feedback/FeedbackForm";
 
@@ -395,6 +396,22 @@ export default function Settings() {
             value={settings.theme.textColor}
             onChange={(e) => setTheme({ textColor: e.target.value })}
           />
+        </div>
+        {/* 폰트 종류 (D-30) */}
+        <div className="setting-item">
+          <span>폰트</span>
+          <select
+            className="setting-select"
+            value={settings.fontFamily}
+            style={{ fontFamily: FONT_OPTIONS.find((f) => f.value === settings.fontFamily)?.stack }}
+            onChange={(e) => commit({ ...settings, fontFamily: e.target.value })}
+          >
+            {FONT_OPTIONS.map((f) => (
+              <option key={f.value} value={f.value} style={{ fontFamily: f.stack }}>
+                {f.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="setting-item">
           <span>화면 글자 크기</span>

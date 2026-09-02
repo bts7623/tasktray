@@ -46,6 +46,8 @@ export interface Settings {
   settingsFontSize: number;
   /** 메모 비밀번호 재입력 주기(분). 0=매번, -1=앱 종료할 때까지, n>0=n분. (D-28) */
   memoLockMinutes: number;
+  /** 앱 폰트 종류(빈 문자열=시스템 기본). (D-30) */
+  fontFamily: string;
 }
 
 export interface Task {
@@ -154,5 +156,6 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     memoFontSize: 14,
     settingsFontSize: 14,
     memoLockMinutes: 0,
+    fontFamily: "",
   };
 }
