@@ -303,6 +303,20 @@ body.main-window {
   text-decoration: line-through;
 }
 
+/* 새로 등록된(24h 이내) task 표시 배지 (D-29) */
+.new-badge {
+  display: inline-block;
+  margin-right: 5px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
 .task-meta {
   flex: 0 0 auto;
   display: flex;

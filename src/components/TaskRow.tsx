@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import type { Task } from "../api";
-import { categoryColor, categoryShort, isOverdue, weekdayKo } from "../tasks";
+import { categoryColor, categoryShort, isNewTask, isOverdue, weekdayKo } from "../tasks";
 
 interface Props {
   task: Task;
@@ -103,7 +103,14 @@ export default function TaskRow({
       />
 
       <div className="task-main" onDoubleClick={startEdit}>
-        <span className={"task-title" + (isDone ? " done" : "")}>{task.title}</span>
+        <span className={"task-title" + (isDone ? " done" : "")}>
+          {task.status === "active" && isNewTask(task) && (
+            <span className="new-badge" title="새로 등록됨 (24시간 이내)">
+              N
+            </span>
+          )}
+          {task.title}
+        </span>
         <span className="task-meta">
           {task.category &&
             (() => {

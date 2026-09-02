@@ -161,11 +161,29 @@ export function pinnedTasks(tasks: Task[]): Task[] {
     .sort(byCategoryThenTitle);
 }
 
-/** 진행 중(active, 비Pin): 대분류 → 소분류 → 제목. (FR-12 변경) */
+/** 등록 후 이 시간(24h) 이내면 '새 항목'으로 보고 진행 중 최상단에 표기. (D-29) */
+export const NEW_TASK_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/** 방금 추가한(24h 이내) task 인지. 진행 중 상단 노출·N 배지용. (D-29) */
+export function isNewTask(t: Task, now: number = Date.now()): boolean {
+  const created = Date.parse(t.createdAt);
+  if (Number.isNaN(created)) return false;
+  return now - created < NEW_TASK_WINDOW_MS;
+}
+
+/** 진행 중(active, 비Pin): 방금 추가한(24h 이내) 항목을 최상단(최신순)에 두고, 나머지는
+ *  대분류 → 소분류 → 제목. (D-29 — 등록 직후 오늘 할 일 지정 편의) */
 export function activeTasks(tasks: Task[]): Task[] {
+  const now = Date.now();
   return tasks
     .filter((t) => notDeleted(t) && t.status === "active" && !t.pinned)
-    .sort(byCategoryThenTitle);
+    .sort((a, b) => {
+      const na = isNewTask(a, now);
+      const nb = isNewTask(b, now);
+      if (na !== nb) return na ? -1 : 1; // 새 항목을 먼저
+      if (na && nb) return b.createdAt.localeCompare(a.createdAt); // 둘 다 새 항목이면 최신 먼저
+      return byCategoryThenTitle(a, b); // 나머지는 기존 정렬
+    });
 }
 
 /** flow 등록 대기(done): 완료일 최신순. (FR-12) */
