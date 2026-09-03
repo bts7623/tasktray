@@ -5,7 +5,7 @@
 > 처음 이어받는다면 이 순서로 읽으면 맥락이 잡힌다: **이 파일(결정 D-01~D-22) → [CHANGELOG.md](CHANGELOG.md)(버전별 변경) → [요구사항정의서](개인업무관리프로그램_요구사항정의서.md)(현재 스펙) → [README.md](README.md)(빌드법)**.
 > 다른 PC에서 처음 셋업한다면 → **[외부PC_작업가이드.md](외부PC_작업가이드.md)** (clone·pnpm install·`.env.local` 재생성·빌드 환경).
 
-- **현재 버전**: v1.6.1 (데스크톱 앱 + 웹/모바일 PWA + 다기기 동기화 + 피드백 + 개인 메모(탭·암호화))
+- **현재 버전**: v1.7.0 (데스크톱 앱 + 웹/모바일 PWA + 다기기 동기화 + 피드백 + 개인 메모 + 자동 업데이트 + 폰트 선택)
 - **구성 요약**
   | 영역 | 위치 | 설명 |
   |---|---|---|
@@ -17,7 +17,8 @@
 - **배포**: 데스크톱 = GitHub Releases(NSIS 설치파일) / 웹 = Vercel(`tasktray.vercel.app`, main push 시 자동) / DB = Supabase.
 - **시크릿**: `.env.local`(git 제외) 에 `VITE_SUPABASE_URL`·`VITE_SUPABASE_ANON_KEY` 필요. Vercel 환경변수에도 동일 설정. 새 PC에서 clone 시 이 파일을 다시 만들어야 웹/동기화 빌드가 동작(없어도 데스크톱 로컬 기능은 정상).
 - **명령**: `pnpm install` → 데스크톱 `pnpm tauri dev` / 설치파일 `pnpm tauri build` / 웹 빌드 `pnpm build` / 테스트 `pnpm test`. (Rust·MSVC Build Tools 필요 — §5)
-- **릴리스 절차**: 버전 3곳(`tauri.conf.json`·`Cargo.toml`·`package.json`) 올림 → 커밋·push(웹 자동배포) → `pnpm tauri build` → `gh release create vX.Y.Z <exe> --notes-file <md>` → CHANGELOG.md 갱신.
+- **릴리스 절차**: 버전 4곳(`tauri.conf.json`·`Cargo.toml`·`package.json`·`src/version.ts`) 올림 → 커밋·push(웹 자동배포) → **서명 env 설정 후** `pnpm tauri build` → **`latest.json` 생성**(버전·URL·`.sig` 내용) → `gh release create vX.Y.Z <exe> latest.json --notes-file <md>` → CHANGELOG.md 갱신.
+  - ⚠️ **자동 업데이트(D-30) 필수**: 매 릴리스에 **서명 + `latest.json` 업로드**가 없으면 사용자 앱이 새 버전을 인식 못 한다. 서명 개인키=`tasktray-updater.key`(git 제외, 분실 시 업데이트 끊김·백업 필수), 비번=`.env.local`의 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. 빌드 시 `$env:TAURI_SIGNING_PRIVATE_KEY = Get-Content tasktray-updater.key -Raw`, `$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 설정. `.sig`는 `target/release/bundle/nsis/*.exe.sig`. 엔드포인트=`releases/latest/download/latest.json`.
 
 ## 0. 최우선 원칙 (반드시 준수)
 

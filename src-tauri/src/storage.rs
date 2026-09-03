@@ -134,6 +134,13 @@ pub struct Settings {
     /// 앱 폰트 종류(빈 문자열=시스템 기본). (D-30)
     #[serde(default)]
     pub font_family: String,
+    /// 시작 시 자동 업데이트 확인. (D-30 업데이터)
+    #[serde(default = "default_true")]
+    pub update_on_startup: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 fn default_font_size() -> u32 {
@@ -204,6 +211,7 @@ impl Default for Settings {
             settings_font_size: default_font_size(),
             memo_lock_minutes: 0,
             font_family: String::new(),
+            update_on_startup: true,
         }
     }
 }

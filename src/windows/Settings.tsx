@@ -20,6 +20,7 @@ import {
 } from "../api";
 import { applyTheme } from "../theme";
 import { FONT_OPTIONS } from "../fonts";
+import { checkForUpdate } from "../updater";
 import SyncSettings from "../components/SyncSettings";
 import FeedbackForm from "../feedback/FeedbackForm";
 
@@ -602,6 +603,22 @@ export default function Settings() {
         appVersion={version || null}
         onOpenAdmin={() => void openFeedback()}
       />
+
+      {/* 업데이트 (D-30) */}
+      <section className="setting-group">
+        <div className="setting-label">업데이트</div>
+        <label className="setting-item checkbox">
+          <span>시작 시 자동으로 업데이트 확인</span>
+          <input
+            type="checkbox"
+            checked={settings.updateOnStartup}
+            onChange={(e) => commit({ ...settings, updateOnStartup: e.target.checked })}
+          />
+        </label>
+        <button className="btn" onClick={() => void checkForUpdate(true)}>
+          지금 업데이트 확인
+        </button>
+      </section>
 
       {/* 초기화 + 버전 (FR-28, NFR-04) */}
       <section className="setting-group">

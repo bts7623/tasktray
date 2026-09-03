@@ -34,6 +34,7 @@ import {
 import QuickInput from "../components/QuickInput";
 import TaskRow from "../components/TaskRow";
 import Snackbar from "../components/Snackbar";
+import { checkForUpdate } from "../updater";
 import { supabaseConfigured } from "../supabase";
 import { syncNow } from "../sync/sync";
 import { currentUserId } from "../sync/session";
@@ -114,6 +115,13 @@ export default function Panel() {
       setPhase("ready");
       ready.current = true;
       void autoSync(); // 시작 시 1회
+      // 시작 시 자동 업데이트 확인(설정 시). 조용히 확인하고 새 버전 있을 때만 안내. (D-30)
+      try {
+        const s = await getSettings();
+        if (s.updateOnStartup) setTimeout(() => void checkForUpdate(false), 3000);
+      } catch {
+        /* 무시 */
+      }
     })();
   }, []);
 

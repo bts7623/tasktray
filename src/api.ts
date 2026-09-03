@@ -48,6 +48,8 @@ export interface Settings {
   memoLockMinutes: number;
   /** 앱 폰트 종류(빈 문자열=시스템 기본). (D-30) */
   fontFamily: string;
+  /** 시작 시 자동 업데이트 확인. (D-30 업데이터) */
+  updateOnStartup: boolean;
 }
 
 export interface Task {
@@ -157,5 +159,6 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     settingsFontSize: 14,
     memoLockMinutes: 0,
     fontFamily: "",
+    updateOnStartup: true,
   };
 }

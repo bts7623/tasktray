@@ -22,3 +22,7 @@ Thumbs.db
 # 환경변수(Supabase 키 등) — 로컬 전용
 .env.local
 .env*.local
+
+# 업데이터 서명 개인키 — 절대 커밋 금지(분실 시 자동 업데이트 불가, 백업 필수)
+tasktray-updater.key
+# 공개키(.pub)는 tauri.conf.json 에도 들어가므로 참고용으로만 추적
