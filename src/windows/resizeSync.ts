@@ -26,7 +26,9 @@ export function syncWindowSize(
 
   const saveNow = async () => {
     try {
+      if (await w.isMinimized()) return; // 최소화 상태의 0×0 크기 저장 방지
       const cur = await currentLogical();
+      if (cur.width < 100 || cur.height < 100) return; // 비정상 크기 저장 방지
       const s = await getSettings();
       const stored = read(s);
       if (Math.abs(stored.width - cur.width) <= 2 && Math.abs(stored.height - cur.height) <= 2) {

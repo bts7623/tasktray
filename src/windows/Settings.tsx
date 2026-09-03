@@ -250,10 +250,12 @@ export default function Settings() {
     let un: (() => void) | undefined;
     const save = async () => {
       try {
+        if (await w.isMinimized()) return; // 최소화 상태의 0×0 저장 방지
         const [sz, sf] = await Promise.all([w.innerSize(), w.scaleFactor()]);
         const l = sz.toLogical(sf);
         const width = Math.round(l.width);
         const height = Math.round(l.height);
+        if (width < 100 || height < 100) return; // 비정상 크기 저장 방지
         const cur = settingsRef.current;
         if (!cur) return;
         if (
@@ -286,7 +288,9 @@ export default function Settings() {
     let un: (() => void) | undefined;
     const save = async () => {
       try {
+        if (await w.isMinimized()) return; // 최소화 시 -32000 좌표 저장 방지
         const pos = await w.outerPosition(); // 물리 좌표
+        if (pos.x <= -30000 || pos.y <= -30000) return; // 최소화 sentinel 방지
         const cur = settingsRef.current;
         if (!cur) return;
         if (cur.settingsSize.x === pos.x && cur.settingsSize.y === pos.y) return;

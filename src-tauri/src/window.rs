@@ -110,9 +110,12 @@ pub fn open_settings(app: &AppHandle) {
         return;
     }
     let s = storage::load_settings(app);
+    // 손상/최소화로 0 등 비정상 크기가 저장돼 있으면 기본값으로 방어. (D-28 버그 수정)
+    let sw = if s.settings_size.width < 200 { 500 } else { s.settings_size.width } as f64;
+    let sh = if s.settings_size.height < 200 { 780 } else { s.settings_size.height } as f64;
     let built = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
         .title("TaskTray - 환경설정")
-        .inner_size(s.settings_size.width as f64, s.settings_size.height as f64)
+        .inner_size(sw, sh)
         .min_inner_size(360.0, 360.0)
         .resizable(true)
         .skip_taskbar(false)
@@ -150,10 +153,13 @@ pub fn open_memo(app: &AppHandle) {
         return;
     }
     let s = storage::load_settings(app);
+    // 비정상 크기 방어(0 등). (D-28 버그 수정)
+    let mw = if s.memo.width < 200 { 400 } else { s.memo.width } as f64;
+    let mh = if s.memo.height < 200 { 520 } else { s.memo.height } as f64;
     // 깜빡임 방지: 숨긴 채 생성 → 위치 지정 → 표시. (D-28)
     let built = WebviewWindowBuilder::new(app, "memo", WebviewUrl::App("index.html".into()))
         .title("TaskTray - 메모")
-        .inner_size(s.memo.width as f64, s.memo.height as f64)
+        .inner_size(mw, mh)
         .min_inner_size(240.0, 240.0)
         .resizable(true)
         .skip_taskbar(false)

@@ -148,10 +148,12 @@ export default function Panel() {
     let un: (() => void) | undefined;
     const save = async () => {
       try {
+        if (await w.isMinimized()) return; // 최소화 상태의 0×0 저장 방지
         const [sz, sf] = await Promise.all([w.innerSize(), w.scaleFactor()]);
         const l = sz.toLogical(sf);
         const width = Math.round(l.width);
         const height = Math.round(l.height);
+        if (width < 100 || height < 100) return; // 비정상 크기 저장 방지
         const cur = settingsRef.current;
         if (!cur) return;
         if (Math.abs(cur.window.width - width) <= 2 && Math.abs(cur.window.height - height) <= 2) {

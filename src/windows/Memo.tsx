@@ -95,7 +95,9 @@ export default function Memo() {
     let un: (() => void) | undefined;
     const save = async () => {
       try {
+        if (await w.isMinimized()) return; // 최소화 시 -32000 좌표 저장 방지
         const pos = await w.outerPosition(); // 물리 좌표
+        if (pos.x <= -30000 || pos.y <= -30000) return; // 최소화 sentinel 방지
         const s = await getSettings();
         if (s.memo.x === pos.x && s.memo.y === pos.y) return;
         await saveSettings({ ...s, memo: { ...s.memo, x: pos.x, y: pos.y } });
