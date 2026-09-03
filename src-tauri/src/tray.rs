@@ -17,6 +17,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
     let uninstall_i = MenuItem::with_id(app, "uninstall", "TaskTray 제거", true, None::<&str>)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
+    let restart_i = MenuItem::with_id(app, "restart", "재시작", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "종료", true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
@@ -28,6 +29,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
             &help_i,
             &uninstall_i,
             &sep2,
+            &restart_i,
             &quit_i,
         ],
     )?;
@@ -44,6 +46,8 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
             "rawdata" => window::open_rawdata(app),
             "help" => window::open_help(app),
             "uninstall" => window::run_uninstaller(app),
+            // 앱 재시작(업데이트 후 등). 종료 후 자동 재실행.
+            "restart" => app.restart(),
             // 완전 종료는 트레이 [종료] 로만 수행 (UI-10)
             "quit" => app.exit(0),
             _ => {}
