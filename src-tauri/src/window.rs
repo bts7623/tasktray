@@ -124,6 +124,8 @@ pub fn open_settings(app: &AppHandle) {
     if let Ok(win) = built {
         position_or_center(app, &win, s.settings_size.x, s.settings_size.y);
         let _ = win.show();
+        // Windows 는 숨김 상태 set_position 을 무시할 수 있어, 표시 후 한 번 더 적용해 복원을 보장한다.
+        position_or_center(app, &win, s.settings_size.x, s.settings_size.y);
         let _ = win.set_focus();
     }
 }
@@ -170,6 +172,8 @@ pub fn open_memo(app: &AppHandle) {
     if let Ok(win) = built {
         position_or_center(app, &win, s.memo.x, s.memo.y);
         let _ = win.show();
+        // Windows 는 숨김 상태 set_position 을 무시할 수 있어, 표시 후 한 번 더 적용해 복원을 보장한다.
+        position_or_center(app, &win, s.memo.x, s.memo.y);
         let _ = win.set_focus();
     }
 }
