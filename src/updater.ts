@@ -17,23 +17,23 @@ export async function checkForUpdate(interactive: boolean): Promise<void> {
     const update = await check();
     if (!update) {
       if (interactive) {
-        await message("이미 최신 버전을 사용 중입니다.", { title: "업데이트", kind: "info" });
+        await message("TaskTray 는 이미 최신 버전입니다.", { title: "TaskTray 업데이트", kind: "info" });
       }
       return;
     }
     const yes = await ask(
-      `새 버전 v${update.version} 이(가) 있습니다.` +
+      `TaskTray 새 버전 v${update.version} 이(가) 있습니다.` +
         (update.body ? `\n\n${update.body}` : "") +
         `\n\n지금 업데이트할까요? (설치 후 자동으로 다시 시작됩니다)`,
-      { title: "업데이트 있음", kind: "info" },
+      { title: "TaskTray 업데이트 있음", kind: "info" },
     );
     if (!yes) return;
     await update.downloadAndInstall();
     await relaunch();
   } catch (e) {
     if (interactive) {
-      await message(`업데이트 확인에 실패했습니다.\n${e instanceof Error ? e.message : String(e)}`, {
-        title: "업데이트",
+      await message(`TaskTray 업데이트 확인에 실패했습니다.\n${e instanceof Error ? e.message : String(e)}`, {
+        title: "TaskTray 업데이트",
         kind: "error",
       });
     }
