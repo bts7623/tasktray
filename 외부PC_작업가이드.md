@@ -57,6 +57,20 @@ VITE_SUPABASE_ANON_KEY=<Supabase anon public 키>
 
 - 값은 Supabase 대시보드 → **Project Settings → API** 에서 복사.
 - 회사 PC의 `.env.local`을 그대로 복사해 와도 됩니다.
+- 참고: 저장소의 [`.env.example`](.env.example) 이 **필요한 변수 이름 목록**입니다(값은 없음). 이걸 복사해 채우세요.
+
+### 3-1. 시크릿(gitignore 파일) 백업·복원 — 개발 연속성 + 보안
+
+git 에 안 올라가는 파일이라 새 PC엔 없습니다. **비밀번호 관리자**에 보관해두고 복원하세요.
+
+| 파일 | 내용 | 민감도 | 백업 방법 |
+|---|---|---|---|
+| `.env.local` | Supabase URL·anon 키, 서명 비번 | 낮음~중 (anon 키는 어차피 웹에 공개·RLS 보호) | 비번 관리자에 텍스트로 저장 |
+| **`tasktray-updater.key`** | 업데이터 **서명 개인키** | **매우 높음** | 비번 관리자에 **파일 첨부** + 별도 2차 백업 |
+
+- ⚠️ **`tasktray-updater.key` 분실 시 자동 업데이트가 영구히 끊깁니다**(재발급 불가). 반드시 **2곳 이상**에 백업.
+- 새 PC: 클론 후 `.env.local` 과 `tasktray-updater.key` 를 관리자에서 복원 → 웹/동기화·서명 릴리스 빌드 가능.
+- 장기적으로는 **GitHub Actions Secrets**에 넣고 CI에서 서명·릴리스하면 로컬에 개인키를 둘 필요가 없어집니다(가장 안전).
 
 ---
 
