@@ -20,8 +20,12 @@ create table if not exists public.tasks (
   flow_processed_at text,
   deleted           boolean not null default false,
   deleted_at        text,
-  updated_at        text not null default ''           -- 마지막 변경(KST). 동기화 충돌 판정
+  updated_at        text not null default '',          -- 마지막 변경(KST). 동기화 충돌 판정
+  pin_order         double precision                   -- 오늘 할 일 수동 우선순위(오름차순). null=미지정 (D-31)
 );
+
+-- 기존 테이블에 pin_order 컬럼 추가(이미 있으면 무시). D-31 적용 시 1회 실행.
+alter table public.tasks add column if not exists pin_order double precision;
 
 -- 행 수준 보안: 로그인한 본인 데이터만 조회/수정 가능
 alter table public.tasks enable row level security;

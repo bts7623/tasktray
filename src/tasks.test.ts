@@ -30,6 +30,7 @@ function mk(p: Partial<Task>): Task {
     deleted: p.deleted ?? false,
     deletedAt: p.deletedAt ?? null,
     updatedAt: p.updatedAt ?? "2026-07-01T09:00:00+09:00",
+    pinOrder: p.pinOrder ?? null,
   };
 }
 

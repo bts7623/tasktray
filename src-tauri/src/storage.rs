@@ -34,6 +34,9 @@ pub struct Task {
     /// 기존(v1) 파일은 마이그레이션에서 채운다. (D-22 — 동기화 위해 D-04 스키마 고정 개정)
     #[serde(default)]
     pub updated_at: String,
+    /// 오늘 할 일(핀) 수동 우선순위(오름차순). None=미지정. (D-31)
+    #[serde(default)]
+    pub pin_order: Option<f64>,
 }
 
 /// tasks.json 파일 전체 구조. (§6.1)
@@ -451,6 +454,7 @@ mod tests {
             deleted: false,
             deleted_at: None,
             updated_at: now_kst(),
+            pin_order: None,
         }
     }
 

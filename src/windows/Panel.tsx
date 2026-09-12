@@ -24,8 +24,10 @@ import {
   collectCategories,
   createTask,
   doneTasks,
+  nextPinOrder,
   nowKst,
   pinnedTasks,
+  reorderPinned,
   replaceTask,
   resolveTitleCategory,
   restoreToDone,
@@ -219,7 +221,22 @@ export default function Panel() {
   };
 
   const togglePin = (task: Task) => {
-    commit(replaceTask(tasks, touch({ ...task, pinned: !task.pinned }))); // FR-08
+    // 핀 지정 시 우선순위를 맨 아래로 부여, 해제 시 값 유지(표시 안 됨). (FR-08 / D-31)
+    const willPin = !task.pinned;
+    const updated = touch({
+      ...task,
+      pinned: willPin,
+      pinOrder: willPin ? nextPinOrder(tasks) : task.pinOrder,
+    });
+    commit(replaceTask(tasks, updated));
+  };
+
+  // 오늘 할 일 드래그 정렬 (D-31)
+  const pinDragId = useRef<string | null>(null);
+  const [pinDragOverId, setPinDragOverId] = useState<string | null>(null);
+  const reorderPin = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    commit(reorderPinned(tasks, fromId, toId));
   };
 
   const editTask = (
@@ -424,7 +441,44 @@ export default function Panel() {
                 (pinned.length === 0 ? (
                   <div className="empty">별표(★)로 오늘 할 일을 지정하세요.</div>
                 ) : (
-                  pinned.map((t) => <TaskRow key={t.id} task={t} {...rowProps} />)
+                  pinned.map((t) => (
+                    <div
+                      key={t.id}
+                      className={"pin-drag" + (pinDragOverId === t.id ? " drag-over" : "")}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
+                      }}
+                      onDragLeave={() => {
+                        if (pinDragOverId === t.id) setPinDragOverId(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (pinDragId.current) reorderPin(pinDragId.current, t.id);
+                        pinDragId.current = null;
+                        setPinDragOverId(null);
+                      }}
+                    >
+                      <span
+                        className="pin-handle"
+                        title="드래그하여 순서 변경"
+                        draggable
+                        onDragStart={(e) => {
+                          pinDragId.current = t.id;
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", t.id);
+                        }}
+                        onDragEnd={() => {
+                          pinDragId.current = null;
+                          setPinDragOverId(null);
+                        }}
+                      >
+                        ⠿
+                      </span>
+                      <TaskRow task={t} {...rowProps} />
+                    </div>
+                  ))
                 ))}
             </section>
 

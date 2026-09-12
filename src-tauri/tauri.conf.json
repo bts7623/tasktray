@@ -26,7 +26,8 @@
         "alwaysOnTop": false,
         "transparent": true,
         "shadow": false,
-        "center": false
+        "center": false,
+        "dragDropEnabled": false
       }
     ],
     "security": {

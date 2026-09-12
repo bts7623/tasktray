@@ -1,7 +1,7 @@
 // 웹/PWA 진입점 (모바일·브라우저). 데스크톱의 트레이 패널 대신 전체화면 반응형 화면.
 // 로그인(Supabase) 게이트 → 데이터는 클라우드에서 직접 읽고 쓴다.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, supabaseConfigured } from "../supabase";
 import { cloudLoad, cloudUpsert } from "./cloud";
@@ -11,7 +11,9 @@ import {
   collectCategories,
   createTask,
   doneTasks,
+  nextPinOrder,
   pinnedTasks,
+  reorderPinned,
   replaceTask,
   resolveTitleCategory,
   restoreToDone,
@@ -126,6 +128,8 @@ function Board({ session }: { session: Session }) {
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>(loadCatColors());
   const [showFeedback, setShowFeedback] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const pinDragId = useRef<string | null>(null);
+  const [pinDragOverId, setPinDragOverId] = useState<string | null>(null);
 
   // silent=true 면 실패해도 화면을 깨지 않음(백그라운드 자동 갱신용)
   const reload = async (silent = false) => {
@@ -196,8 +200,23 @@ function Board({ session }: { session: Session }) {
     push(u, replaceTask(tasks, u));
   };
   const togglePin = (task: Task) => {
-    const u = touch({ ...task, pinned: !task.pinned });
+    const willPin = !task.pinned;
+    const u = touch({
+      ...task,
+      pinned: willPin,
+      pinOrder: willPin ? nextPinOrder(tasks) : task.pinOrder,
+    });
     push(u, replaceTask(tasks, u));
+  };
+  const reorderPin = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const next = reorderPinned(tasks, fromId, toId);
+    setTasks(next);
+    // 순서가 바뀐(touch된) 핀들만 클라우드 반영
+    next.forEach((t) => {
+      const prev = tasks.find((o) => o.id === t.id);
+      if (prev && prev !== t) cloudUpsert(t, userId).catch((e) => setError(String(e)));
+    });
   };
   const editTask = (
     task: Task,
@@ -274,7 +293,44 @@ function Board({ session }: { session: Session }) {
             (pinned.length === 0 ? (
               <div className="empty">별표(★)로 오늘 할 일을 지정하세요.</div>
             ) : (
-              pinned.map((t) => <TaskRow key={t.id} task={t} {...rowProps} />)
+              pinned.map((t) => (
+                <div
+                  key={t.id}
+                  className={"pin-drag" + (pinDragOverId === t.id ? " drag-over" : "")}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
+                  }}
+                  onDragLeave={() => {
+                    if (pinDragOverId === t.id) setPinDragOverId(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (pinDragId.current) reorderPin(pinDragId.current, t.id);
+                    pinDragId.current = null;
+                    setPinDragOverId(null);
+                  }}
+                >
+                  <span
+                    className="pin-handle"
+                    title="드래그하여 순서 변경"
+                    draggable
+                    onDragStart={(e) => {
+                      pinDragId.current = t.id;
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", t.id);
+                    }}
+                    onDragEnd={() => {
+                      pinDragId.current = null;
+                      setPinDragOverId(null);
+                    }}
+                  >
+                    ⠿
+                  </span>
+                  <TaskRow task={t} {...rowProps} />
+                </div>
+              ))
             ))}
         </section>
 
