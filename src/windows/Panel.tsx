@@ -441,10 +441,14 @@ export default function Panel() {
                 (pinned.length === 0 ? (
                   <div className="empty">별표(★)로 오늘 할 일을 지정하세요.</div>
                 ) : (
-                  pinned.map((t) => (
+                  pinned.map((t, idx) => (
                     <div
                       key={t.id}
-                      className={"pin-drag" + (pinDragOverId === t.id ? " drag-over" : "")}
+                      className={
+                        "pin-drag" +
+                        (idx < 5 ? " top5" : "") +
+                        (pinDragOverId === t.id ? " drag-over" : "")
+                      }
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.dataTransfer.dropEffect = "move";

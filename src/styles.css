@@ -338,6 +338,18 @@ body.main-window {
   box-shadow: inset 0 2px 0 var(--accent);
 }
 
+/* 우선순위 상위 5개 강조 (D-31) */
+.pin-drag.top5 {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-radius: 6px;
+  padding-right: 4px;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.pin-drag.top5.drag-over {
+  box-shadow: inset 3px 0 0 var(--accent), inset 0 2px 0 var(--accent);
+}
+
 /* 새로 등록된(24h 이내) task 표시 배지 — 빨간 원 (D-29) */
 .new-badge {
   display: inline-flex;
