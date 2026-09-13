@@ -18,6 +18,7 @@ function mk(id: string, updatedAt: string, extra: Partial<Task> = {}): Task {
     deletedAt: null,
     updatedAt,
     pinOrder: null,
+    starred: false,
     ...extra,
   };
 }

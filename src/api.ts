@@ -72,6 +72,8 @@ export interface Task {
   updatedAt: string; // 마지막 변경 시각(KST). 동기화 충돌 판정용 (schema v2)
   /** 오늘 할 일(핀) 수동 우선순위(오름차순). null=미지정. (D-31) */
   pinOrder: number | null;
+  /** 오늘 할 일 중 직접 지정한 별표(중요) 표시. (D-31 개정) */
+  starred: boolean;
 }
 
 export interface TasksFile {

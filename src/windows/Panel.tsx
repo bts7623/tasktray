@@ -231,6 +231,11 @@ export default function Panel() {
     commit(replaceTask(tasks, updated));
   };
 
+  // 오늘 할 일 중 직접 지정 별표 토글 (D-31 개정)
+  const toggleStar = (task: Task) => {
+    commit(replaceTask(tasks, touch({ ...task, starred: !task.starred })));
+  };
+
   // 오늘 할 일 드래그 정렬 (D-31)
   const pinDragId = useRef<string | null>(null);
   const [pinDragOverId, setPinDragOverId] = useState<string | null>(null);
@@ -441,10 +446,9 @@ export default function Panel() {
                 (pinned.length === 0 ? (
                   <div className="empty">별표(★)로 오늘 할 일을 지정하세요.</div>
                 ) : (
-                  pinned.map((t, idx) => {
+                  pinned.map((t) => {
                     const dragProps = {
                       draggable: true,
-                      title: "드래그하여 순서 변경",
                       onDragStart: (e: DragEvent) => {
                         pinDragId.current = t.id;
                         e.dataTransfer.effectAllowed = "move";
@@ -460,8 +464,7 @@ export default function Panel() {
                         key={t.id}
                         className={
                           "pin-drag" +
-                          (idx < 5 ? " top5" : "") +
-                          (idx === 4 ? " top5-last" : "") +
+                          (t.starred ? " starred" : "") +
                           (pinDragOverId === t.id ? " drag-over" : "")
                         }
                         onDragOver={(e) => {
@@ -479,15 +482,14 @@ export default function Panel() {
                           setPinDragOverId(null);
                         }}
                       >
-                        {idx < 5 ? (
-                          <span className="pin-rank" {...dragProps}>
-                            {settings?.pinStar || "⭐"}
-                          </span>
-                        ) : (
-                          <span className="pin-handle" {...dragProps}>
-                            ⠿
-                          </span>
-                        )}
+                        <span
+                          className={"pin-star" + (t.starred ? " on" : "")}
+                          title="별표 지정/해제 · 드래그로 순서 변경"
+                          {...dragProps}
+                          onClick={() => toggleStar(t)}
+                        >
+                          {t.starred ? settings?.pinStar || "⭐" : "☆"}
+                        </span>
                         <TaskRow task={t} {...rowProps} />
                       </div>
                     );

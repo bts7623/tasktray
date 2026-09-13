@@ -418,12 +418,12 @@ export default function Settings() {
                 }
                 onChange={(e) => setTheme({ top5Color: e.target.value })}
               />
-              <span>TOP5</span>
+              <span>별표</span>
             </label>
             <button
               type="button"
               className="btn-sm ghost color-reset"
-              title="배경·글자·TOP5 색상을 기본값으로 초기화"
+              title="배경·글자·별표 색상을 기본값으로 초기화"
               onClick={() => {
                 const d = defaultSettings().theme;
                 setTheme({

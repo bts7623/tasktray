@@ -18,6 +18,7 @@ export interface TaskRow {
   deleted_at: string | null;
   updated_at: string;
   pin_order?: number | null;
+  starred?: boolean;
 }
 
 export function taskToRow(t: Task, userId: string): TaskRow {
@@ -37,6 +38,7 @@ export function taskToRow(t: Task, userId: string): TaskRow {
     deleted_at: t.deletedAt,
     updated_at: t.updatedAt,
     pin_order: t.pinOrder,
+    starred: t.starred,
   };
 }
 
@@ -56,5 +58,6 @@ export function rowToTask(r: TaskRow): Task {
     deletedAt: r.deleted_at ?? null,
     updatedAt: r.updated_at ?? "",
     pinOrder: r.pin_order ?? null,
+    starred: Boolean(r.starred),
   };
 }

@@ -25,6 +25,7 @@ function mk(p: Partial<Task>): Task {
     deletedAt: p.deletedAt ?? null,
     updatedAt: p.updatedAt ?? "2026-03-13T09:00:00+09:00",
     pinOrder: p.pinOrder ?? null,
+    starred: p.starred ?? false,
   };
 }
 

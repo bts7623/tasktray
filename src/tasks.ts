@@ -249,6 +249,7 @@ export function createTask(title: string, category: string | null, dueDate: stri
     deletedAt: null,
     updatedAt: now,
     pinOrder: null,
+    starred: false,
   };
 }
 
