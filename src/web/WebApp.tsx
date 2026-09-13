@@ -132,6 +132,7 @@ function Board({ session }: { session: Session }) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const pinDragId = useRef<string | null>(null);
+  const pinDragStarred = useRef<boolean>(false);
   const [pinDragOverId, setPinDragOverId] = useState<string | null>(null);
 
   // silent=true 면 실패해도 화면을 깨지 않음(백그라운드 자동 갱신용)
@@ -203,16 +204,17 @@ function Board({ session }: { session: Session }) {
     push(u, replaceTask(tasks, u));
   };
   const togglePin = (task: Task) => {
-    const u = touch({ ...task, pinned: !task.pinned });
+    const willPin = !task.pinned;
+    const u = touch({
+      ...task,
+      pinned: willPin,
+      pinOrder: willPin ? nextPinOrder(tasks, false) : task.pinOrder,
+    });
     push(u, replaceTask(tasks, u));
   };
   const toggleStar = (task: Task) => {
     const willStar = !task.starred;
-    const u = touch({
-      ...task,
-      starred: willStar,
-      pinOrder: willStar ? nextPinOrder(tasks) : task.pinOrder,
-    });
+    const u = touch({ ...task, starred: willStar, pinOrder: nextPinOrder(tasks, willStar) });
     push(u, replaceTask(tasks, u));
   };
   const reorderPin = (fromId: string, toId: string) => {
@@ -305,6 +307,7 @@ function Board({ session }: { session: Session }) {
                   draggable: true,
                   onDragStart: (e: DragEvent) => {
                     pinDragId.current = t.id;
+                    pinDragStarred.current = t.starred;
                     e.dataTransfer.effectAllowed = "move";
                     e.dataTransfer.setData("text/plain", t.id);
                   },
@@ -322,27 +325,27 @@ function Board({ session }: { session: Session }) {
                       (pinDragOverId === t.id ? " drag-over" : "")
                     }
                     onDragOver={(e) => {
-                      if (!t.starred) return;
+                      if (!pinDragId.current || pinDragStarred.current !== t.starred) return;
                       e.preventDefault();
                       e.dataTransfer.dropEffect = "move";
-                      if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
+                      if (pinDragOverId !== t.id) setPinDragOverId(t.id);
                     }}
                     onDragLeave={() => {
                       if (pinDragOverId === t.id) setPinDragOverId(null);
                     }}
                     onDrop={(e) => {
-                      if (!t.starred) return;
+                      if (!pinDragId.current || pinDragStarred.current !== t.starred) return;
                       e.preventDefault();
-                      if (pinDragId.current) reorderPin(pinDragId.current, t.id);
+                      reorderPin(pinDragId.current, t.id);
                       pinDragId.current = null;
                       setPinDragOverId(null);
                     }}
                   >
                     <span
                       className={"pin-star" + (t.starred ? " on" : "")}
-                      title={t.starred ? "별표 해제 · 드래그로 순서 변경" : "별표 지정"}
+                      title={t.starred ? "별표 해제 · 드래그로 순서 변경" : "별표 지정 · 드래그로 순서 변경"}
                       onClick={() => toggleStar(t)}
-                      {...(t.starred ? dragProps : {})}
+                      {...dragProps}
                     >
                       {t.starred ? PIN_STAR : "☆"}
                     </span>

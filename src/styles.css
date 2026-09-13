@@ -353,7 +353,7 @@ body.main-window {
   justify-content: center;
   font-size: 0.95rem;
   line-height: 1;
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
   opacity: 0.3;
 }
@@ -367,11 +367,7 @@ body.main-window {
   opacity: 1;
 }
 
-.pin-star.on {
-  cursor: grab;
-}
-
-.pin-star.on:active {
+.pin-star:active {
   cursor: grabbing;
 }
 

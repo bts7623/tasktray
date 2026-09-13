@@ -154,39 +154,48 @@ function byCategoryThenTitle(a: Task, b: Task): number {
   return a.title.localeCompare(b.title, "ko");
 }
 
-/** 오늘 할 일(Pin): pinned && active. **별표 지정 항목을 위로**(수동 pinOrder 순), 그 아래 나머지는
- *  기존 정렬(대분류→소분류→제목). (D-31 개정 — 별표만 수동 정렬, 나머지는 D-21) */
+/** 오늘 할 일(Pin): pinned && active. **별표 그룹이 위, 일반 그룹이 아래**. 두 그룹 모두 수동 순서
+ *  (pinOrder 오름차순, 없으면 대분류→소분류→제목). (D-31 개정 — 전부 드래그 정렬, 별표는 상단) */
 export function pinnedTasks(tasks: Task[]): Task[] {
   const list = tasks.filter((t) => notDeleted(t) && t.status === "active" && t.pinned);
-  const starred = list
-    .filter((t) => t.starred)
-    .sort((a, b) => {
-      const oa = a.pinOrder ?? Number.POSITIVE_INFINITY;
-      const ob = b.pinOrder ?? Number.POSITIVE_INFINITY;
-      if (oa !== ob) return oa - ob;
-      return byCategoryThenTitle(a, b);
-    });
-  const rest = list.filter((t) => !t.starred).sort(byCategoryThenTitle);
+  const byOrder = (a: Task, b: Task) => {
+    const oa = a.pinOrder ?? Number.POSITIVE_INFINITY;
+    const ob = b.pinOrder ?? Number.POSITIVE_INFINITY;
+    if (oa !== ob) return oa - ob;
+    return byCategoryThenTitle(a, b);
+  };
+  const starred = list.filter((t) => t.starred).sort(byOrder);
+  const rest = list.filter((t) => !t.starred).sort(byOrder);
   return [...starred, ...rest];
 }
 
-/** 새로 별표할 때 부여할 우선순위(별표 그룹 맨 아래). 기존 별표들의 최댓값+1. (D-31) */
-export function nextPinOrder(tasks: Task[]): number {
+/** 지정 그룹(별표/일반) 맨 아래에 붙일 pinOrder(그 그룹 최댓값+1). (D-31) */
+export function nextPinOrder(tasks: Task[], starred: boolean): number {
   const orders = tasks
-    .filter((t) => t.starred && t.pinOrder != null)
+    .filter(
+      (t) =>
+        notDeleted(t) &&
+        t.status === "active" &&
+        t.pinned &&
+        t.starred === starred &&
+        t.pinOrder != null,
+    )
     .map((t) => t.pinOrder as number);
   return orders.length ? Math.max(...orders) + 1 : 0;
 }
 
-/** 별표 그룹 안에서 fromId 를 toId 위치로 이동 → 별표들의 pinOrder 를 0..n 재부여(변경분 touch). (D-31) */
+/** 같은 그룹(별표/일반) 안에서 fromId 를 toId 위치로 이동 → 그 그룹 pinOrder 0..n 재부여. (D-31) */
 export function reorderPinned(tasks: Task[], fromId: string, toId: string): Task[] {
-  const starred = pinnedTasks(tasks).filter((t) => t.starred);
-  const from = starred.findIndex((t) => t.id === fromId);
-  const to = starred.findIndex((t) => t.id === toId);
-  if (from < 0 || to < 0 || from === to) return tasks;
-  const arr = [...starred];
-  const [moved] = arr.splice(from, 1);
-  arr.splice(to, 0, moved);
+  const from = tasks.find((t) => t.id === fromId);
+  const to = tasks.find((t) => t.id === toId);
+  if (!from || !to || from.starred !== to.starred) return tasks; // 그룹 넘나들기 금지
+  const group = pinnedTasks(tasks).filter((t) => t.starred === from.starred);
+  const fi = group.findIndex((t) => t.id === fromId);
+  const ti = group.findIndex((t) => t.id === toId);
+  if (fi < 0 || ti < 0 || fi === ti) return tasks;
+  const arr = [...group];
+  const [moved] = arr.splice(fi, 1);
+  arr.splice(ti, 0, moved);
   const orderMap = new Map(arr.map((t, i) => [t.id, i]));
   return tasks.map((t) =>
     orderMap.has(t.id) && t.pinOrder !== orderMap.get(t.id)

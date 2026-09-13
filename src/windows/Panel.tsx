@@ -221,26 +221,30 @@ export default function Panel() {
   };
 
   const togglePin = (task: Task) => {
-    commit(replaceTask(tasks, touch({ ...task, pinned: !task.pinned }))); // FR-08
+    // 오늘 할 일로 지정 시 일반 그룹 맨 아래 순서 부여(드래그 정렬 가능). (FR-08 / D-31)
+    const willPin = !task.pinned;
+    commit(
+      replaceTask(
+        tasks,
+        touch({ ...task, pinned: willPin, pinOrder: willPin ? nextPinOrder(tasks, false) : task.pinOrder }),
+      ),
+    );
   };
 
-  // 오늘 할 일 중 직접 지정 별표 토글 — 별표 시 별표 그룹 맨 아래 순서 부여(위로 모임). (D-31 개정)
+  // 별표 토글 — 지정 시 별표 그룹(상단) 맨 아래, 해제 시 일반 그룹 맨 아래로. (D-31 개정)
   const toggleStar = (task: Task) => {
     const willStar = !task.starred;
     commit(
       replaceTask(
         tasks,
-        touch({
-          ...task,
-          starred: willStar,
-          pinOrder: willStar ? nextPinOrder(tasks) : task.pinOrder,
-        }),
+        touch({ ...task, starred: willStar, pinOrder: nextPinOrder(tasks, willStar) }),
       ),
     );
   };
 
   // 오늘 할 일 드래그 정렬 (D-31)
   const pinDragId = useRef<string | null>(null);
+  const pinDragStarred = useRef<boolean>(false);
   const [pinDragOverId, setPinDragOverId] = useState<string | null>(null);
   const reorderPin = (fromId: string, toId: string) => {
     if (fromId === toId) return;
@@ -454,6 +458,7 @@ export default function Panel() {
                       draggable: true,
                       onDragStart: (e: DragEvent) => {
                         pinDragId.current = t.id;
+                        pinDragStarred.current = t.starred;
                         e.dataTransfer.effectAllowed = "move";
                         e.dataTransfer.setData("text/plain", t.id);
                       },
@@ -471,27 +476,28 @@ export default function Panel() {
                           (pinDragOverId === t.id ? " drag-over" : "")
                         }
                         onDragOver={(e) => {
-                          if (!t.starred) return; // 별표 그룹 안에서만 정렬
+                          // 같은 그룹(별표/일반) 안에서만 정렬
+                          if (!pinDragId.current || pinDragStarred.current !== t.starred) return;
                           e.preventDefault();
                           e.dataTransfer.dropEffect = "move";
-                          if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
+                          if (pinDragOverId !== t.id) setPinDragOverId(t.id);
                         }}
                         onDragLeave={() => {
                           if (pinDragOverId === t.id) setPinDragOverId(null);
                         }}
                         onDrop={(e) => {
-                          if (!t.starred) return;
+                          if (!pinDragId.current || pinDragStarred.current !== t.starred) return;
                           e.preventDefault();
-                          if (pinDragId.current) reorderPin(pinDragId.current, t.id);
+                          reorderPin(pinDragId.current, t.id);
                           pinDragId.current = null;
                           setPinDragOverId(null);
                         }}
                       >
                         <span
                           className={"pin-star" + (t.starred ? " on" : "")}
-                          title={t.starred ? "별표 해제 · 드래그로 순서 변경" : "별표 지정"}
+                          title={t.starred ? "별표 해제 · 드래그로 순서 변경" : "별표 지정 · 드래그로 순서 변경"}
                           onClick={() => toggleStar(t)}
-                          {...(t.starred ? dragProps : {})}
+                          {...dragProps}
                         >
                           {t.starred ? settings?.pinStar || "⭐" : "☆"}
                         </span>
