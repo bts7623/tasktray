@@ -9,6 +9,8 @@ export interface Theme {
   fontSize: number;
   /** 오늘 할 일 TOP5 강조 배경색. 빈 문자열=자동(테마 기반). (D-31) */
   top5Color: string;
+  /** 마지막으로 선택한 테마 프리셋 라벨. 색상 [초기화] 시 이 프리셋 색으로 복원. (D-32) */
+  preset: string;
 }
 
 export interface WindowSize {
@@ -151,7 +153,13 @@ export const memoLock = () => invoke<void>("memo_lock");
 /** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
 export function defaultSettings(): Omit<Settings, "dataPath"> {
   return {
-    theme: { backgroundColor: "#1e1e1e", textColor: "#e0e0e0", fontSize: 14, top5Color: "" },
+    theme: {
+      backgroundColor: "#1e1e1e",
+      textColor: "#e0e0e0",
+      fontSize: 14,
+      top5Color: "",
+      preset: "다크",
+    },
     window: { width: 360, height: 720 },
     autoStart: false,
     titleAutoParse: false,

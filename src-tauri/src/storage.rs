@@ -70,6 +70,13 @@ pub struct Theme {
     /// 오늘 할 일 TOP5 강조 배경색. 빈 문자열=자동(테마 기반). (D-31)
     #[serde(default)]
     pub top5_color: String,
+    /// 마지막으로 선택한 테마 프리셋 라벨. 색상 초기화 시 복원용. (D-32)
+    #[serde(default = "default_preset")]
+    pub preset: String,
+}
+
+fn default_preset() -> String {
+    "다크".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -207,6 +214,7 @@ impl Default for Settings {
                 text_color: "#e0e0e0".into(),
                 font_size: 14,
                 top5_color: String::new(),
+                preset: default_preset(),
             },
             window: WindowSize {
                 width: 360,

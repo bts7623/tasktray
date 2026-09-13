@@ -380,7 +380,9 @@ export default function Settings() {
                   className={"theme-chip" + (active ? " active" : "")}
                   style={{ background: p.bg, color: p.fg }}
                   title={`${p.label} 테마 적용`}
-                  onClick={() => setTheme({ backgroundColor: p.bg, textColor: p.fg })}
+                  onClick={() =>
+                    setTheme({ backgroundColor: p.bg, textColor: p.fg, preset: p.label })
+                  }
                 >
                   {p.label}
                 </button>
@@ -423,12 +425,13 @@ export default function Settings() {
             <button
               type="button"
               className="btn-sm ghost color-reset"
-              title="배경·글자·별표 색상을 기본값으로 초기화"
+              title="마지막 선택 테마 색으로 초기화"
               onClick={() => {
                 const d = defaultSettings().theme;
+                const preset = THEME_PRESETS.find((p) => p.label === settings.theme.preset);
                 setTheme({
-                  backgroundColor: d.backgroundColor,
-                  textColor: d.textColor,
+                  backgroundColor: preset ? preset.bg : d.backgroundColor,
+                  textColor: preset ? preset.fg : d.textColor,
                   top5Color: "",
                 });
               }}
