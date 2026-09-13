@@ -4,6 +4,7 @@
 
 import type { Settings } from "./api";
 import { fontStack } from "./fonts";
+import { readableText } from "./tasks";
 
 /** 배경색이 밝은지 판정(달력 아이콘 등 네이티브 위젯 color-scheme 결정용). */
 function isLightBg(hex: string): boolean {
@@ -34,10 +35,11 @@ export function applyTheme(settings: Settings, fontOverride?: number): void {
   root.style.setProperty("--app-font", fontStack(settings.fontFamily));
   // 오늘 할 일 TOP5 강조 배경. 커스텀값 있으면 사용, 없으면 테마 글자색 기반 자동(톤 유지·대비↑). (D-31)
   const top5 = settings.theme.top5Color?.trim();
-  root.style.setProperty(
-    "--top5-bg",
-    top5 ? top5 : autoTop5Color(settings.theme.backgroundColor, settings.theme.textColor),
-  );
+  const accent = top5
+    ? top5
+    : autoTop5Color(settings.theme.backgroundColor, settings.theme.textColor);
+  root.style.setProperty("--top5-accent", accent);
+  root.style.setProperty("--top5-fg", readableText(accent)); // 순위 배지 숫자색(대비)
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -86,19 +88,30 @@ function hsl2hex(h: number, s: number, l: number): string {
   return `#${to(r)}${to(g)}${to(b)}`;
 }
 
-/** TOP5 자동 강조색: 테마 배경(없으면 글자, 그것도 무채색이면 기본 hue)의 **보색 계열**로 hue 를 돌리고,
- *  채도·명도는 테마 톤에 맞춰 산출 → 같은 색 밝기만 바꾼 것보다 눈에 띄되 톤은 유지. (D-31) */
+// 세련된 "포인트 컬러" 후보 hue(패션 포인트처럼 톡 튀되 촌스럽지 않은 톤): 코랄·앰버·골드·틸·블루·바이올렛·로즈
+const POINT_HUES = [8, 32, 45, 168, 200, 262, 330];
+
+/** TOP5 자동 강조색: 정확한 보색(부딪힘) 대신, 큐레이션된 포인트 hue 중 **테마 색과 가장 먼(대비되는)** 것을
+ *  골라 세련된 채도·명도로 산출. 넓게 칠하지 않고 은은한 틴트 + 컬러 바로 쓰는 전제. (D-31) */
 export function autoTop5Color(bgHex: string, fgHex: string): string {
   const [bh, bs, bl] = rgbToHsl(...hexToRgb(bgHex));
   const [fh, fs] = rgbToHsl(...hexToRgb(fgHex));
-  let hue: number;
-  if (bs > 0.15) hue = (bh + 180) % 360; // 배경의 보색
-  else if (fs > 0.15) hue = (fh + 180) % 360; // 배경이 무채색이면 글자의 보색
-  else hue = 200; // 둘 다 무채색(회색/흑백) 테마 → 기본 강조 hue(청록)
+  const baseHue = bs > 0.12 ? bh : fs > 0.12 ? fh : 210; // 테마의 기준 색상(무채색이면 기본 블루 기준)
+  let best = POINT_HUES[0];
+  let bestDist = -1;
+  for (const h of POINT_HUES) {
+    let d = Math.abs(h - baseHue) % 360;
+    d = Math.min(d, 360 - d);
+    if (d > bestDist) {
+      bestDist = d;
+      best = h;
+    }
+  }
   const isDark = bl < 0.5;
-  let light = isDark ? bl + 0.16 : bl - 0.13; // 배경보다 살짝 대비
-  light = Math.max(0.14, Math.min(0.88, light));
-  return hsl2hex(hue, 0.5, light);
+  // 다크: 다소 밝고 선명한 포인트 / 라이트: 조금 진한 포인트 (네온스럽지 않게 채도 절제)
+  const sat = isDark ? 0.6 : 0.55;
+  const light = isDark ? 0.6 : 0.5;
+  return hsl2hex(best, sat, light);
 }
 
 /** hex(base) 에 hex(mix) 를 ratio(0~1) 만큼 섞은 hex 반환. TOP5 자동색 미리보기용. (D-31) */

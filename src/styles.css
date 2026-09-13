@@ -338,17 +338,34 @@ body.main-window {
   box-shadow: inset 0 2px 0 var(--accent);
 }
 
-/* 우선순위 상위 5개 강조 — 테마 글자색 기반(톤 유지) + 좌측 바로 대비 (D-31) */
+/* 우선순위 상위 5개 강조 — 순위 배지(포인트 컬러 원) + 은은한 틴트 (D-31) */
 .pin-drag.top5 {
-  background: var(--top5-bg);
+  background: color-mix(in srgb, var(--top5-accent) 12%, var(--bg));
   border-radius: 6px;
-  padding-right: 4px;
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--fg) 55%, transparent);
 }
 
-.pin-drag.top5.drag-over {
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--fg) 55%, transparent),
-    inset 0 2px 0 var(--accent);
+/* 순위 별 이모지: 드래그 핸들 겸용 (D-31) */
+.pin-rank {
+  flex: 0 0 auto;
+  width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+}
+
+.pin-rank:active {
+  cursor: grabbing;
+}
+
+/* 상위 5개와 나머지 경계 구분선 */
+.pin-drag.top5-last {
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed var(--border);
 }
 
 /* 새로 등록된(24h 이내) task 표시 배지 — 빨간 원 (D-29) */
@@ -970,6 +987,18 @@ body.main-window {
   color: var(--fg);
   font-family: inherit;
   font-size: 0.82rem;
+}
+
+.emoji-input {
+  width: 42px;
+  text-align: center;
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.95rem;
 }
 
 .setting-select {

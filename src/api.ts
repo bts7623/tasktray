@@ -52,6 +52,8 @@ export interface Settings {
   fontFamily: string;
   /** 시작 시 자동 업데이트 확인. (D-30 업데이터) */
   updateOnStartup: boolean;
+  /** 오늘 할 일 상위 5개에 표시할 이모지. (D-31) */
+  pinStar: string;
 }
 
 export interface Task {
@@ -164,5 +166,6 @@ export function defaultSettings(): Omit<Settings, "dataPath"> {
     memoLockMinutes: 0,
     fontFamily: "",
     updateOnStartup: true,
+    pinStar: "⭐",
   };
 }

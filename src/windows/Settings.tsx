@@ -175,6 +175,9 @@ const MEMO_LOCK_OPTIONS: { label: string; value: number }[] = [
   { label: "앱 종료할 때까지", value: -1 },
 ];
 
+// 오늘 할 일 상위 5개 표시 이모지 프리셋 (D-31)
+const PIN_STAR_PRESETS = ["⭐", "🌟", "✨", "🔥", "📌", "✅", "❤️", "👍"];
+
 const FONT_PRESETS: { label: string; size: number }[] = [
   { label: "소", size: 12 },
   { label: "중", size: 14 },
@@ -432,6 +435,30 @@ export default function Settings() {
             >
               초기화
             </button>
+          </div>
+        </div>
+        {/* 오늘 할 일 표시 이모지 (D-31) */}
+        <div className="setting-item">
+          <span>오늘 할 일 표시</span>
+          <div className="inline">
+            <input
+              className="emoji-input"
+              type="text"
+              maxLength={4}
+              value={settings.pinStar}
+              onChange={(e) => commit({ ...settings, pinStar: e.target.value })}
+            />
+            <div className="preset-group">
+              {PIN_STAR_PRESETS.map((em) => (
+                <button
+                  key={em}
+                  className={"btn-sm" + (settings.pinStar === em ? "" : " ghost")}
+                  onClick={() => commit({ ...settings, pinStar: em })}
+                >
+                  {em}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         {/* 폰트 종류 (D-30) */}

@@ -2,7 +2,7 @@
 // M4: done → flow 등록완료/제외 → archived 숨김 + 즉시 실행취소 스낵바 (FR-10/11, §3.2).
 // 저장 위치는 앱 자동 관리(D-08). archived 상시 종료취소·로우데이터·리포트는 M5.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { listen } from "@tauri-apps/api/event";
@@ -441,48 +441,57 @@ export default function Panel() {
                 (pinned.length === 0 ? (
                   <div className="empty">별표(★)로 오늘 할 일을 지정하세요.</div>
                 ) : (
-                  pinned.map((t, idx) => (
-                    <div
-                      key={t.id}
-                      className={
-                        "pin-drag" +
-                        (idx < 5 ? " top5" : "") +
-                        (pinDragOverId === t.id ? " drag-over" : "")
-                      }
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.dataTransfer.dropEffect = "move";
-                        if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
-                      }}
-                      onDragLeave={() => {
-                        if (pinDragOverId === t.id) setPinDragOverId(null);
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        if (pinDragId.current) reorderPin(pinDragId.current, t.id);
+                  pinned.map((t, idx) => {
+                    const dragProps = {
+                      draggable: true,
+                      title: "드래그하여 순서 변경",
+                      onDragStart: (e: DragEvent) => {
+                        pinDragId.current = t.id;
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", t.id);
+                      },
+                      onDragEnd: () => {
                         pinDragId.current = null;
                         setPinDragOverId(null);
-                      }}
-                    >
-                      <span
-                        className="pin-handle"
-                        title="드래그하여 순서 변경"
-                        draggable
-                        onDragStart={(e) => {
-                          pinDragId.current = t.id;
-                          e.dataTransfer.effectAllowed = "move";
-                          e.dataTransfer.setData("text/plain", t.id);
+                      },
+                    };
+                    return (
+                      <div
+                        key={t.id}
+                        className={
+                          "pin-drag" +
+                          (idx < 5 ? " top5" : "") +
+                          (idx === 4 ? " top5-last" : "") +
+                          (pinDragOverId === t.id ? " drag-over" : "")
+                        }
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
                         }}
-                        onDragEnd={() => {
+                        onDragLeave={() => {
+                          if (pinDragOverId === t.id) setPinDragOverId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (pinDragId.current) reorderPin(pinDragId.current, t.id);
                           pinDragId.current = null;
                           setPinDragOverId(null);
                         }}
                       >
-                        ⠿
-                      </span>
-                      <TaskRow task={t} {...rowProps} />
-                    </div>
-                  ))
+                        {idx < 5 ? (
+                          <span className="pin-rank" {...dragProps}>
+                            {settings?.pinStar || "⭐"}
+                          </span>
+                        ) : (
+                          <span className="pin-handle" {...dragProps}>
+                            ⠿
+                          </span>
+                        )}
+                        <TaskRow task={t} {...rowProps} />
+                      </div>
+                    );
+                  })
                 ))}
             </section>
 

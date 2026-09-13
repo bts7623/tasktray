@@ -143,10 +143,17 @@ pub struct Settings {
     /// 시작 시 자동 업데이트 확인. (D-30 업데이터)
     #[serde(default = "default_true")]
     pub update_on_startup: bool,
+    /// 오늘 할 일 상위 5개에 표시할 이모지. (D-31)
+    #[serde(default = "default_pin_star")]
+    pub pin_star: String,
 }
 
 fn default_true() -> bool {
     true
+}
+
+fn default_pin_star() -> String {
+    "⭐".to_string()
 }
 
 fn default_font_size() -> u32 {
@@ -219,6 +226,7 @@ impl Default for Settings {
             memo_lock_minutes: 0,
             font_family: String::new(),
             update_on_startup: true,
+            pin_star: default_pin_star(),
         }
     }
 }
