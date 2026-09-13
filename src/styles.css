@@ -338,13 +338,13 @@ body.main-window {
   box-shadow: inset 0 2px 0 var(--accent);
 }
 
-/* 직접 지정한 별표 항목 강조 — 포인트 컬러 은은한 틴트 (D-31 개정) */
+/* 직접 지정한 별표 항목 강조 — 선택 색이 잘 보이도록 틴트 진하게 (D-31 개정) */
 .pin-drag.starred {
-  background: color-mix(in srgb, var(--top5-accent) 13%, var(--bg));
+  background: color-mix(in srgb, var(--top5-accent) 38%, var(--bg));
   border-radius: 6px;
 }
 
-/* 별표 토글(드래그 핸들 겸용). 미지정=흐린 ☆, 지정=선택 이모지 */
+/* 별표 토글. 미지정=흐린 ☆(클릭해 지정), 지정=선택 이모지(클릭 해제·드래그로 순서 변경) */
 .pin-star {
   flex: 0 0 auto;
   width: 22px;
@@ -353,7 +353,7 @@ body.main-window {
   justify-content: center;
   font-size: 0.95rem;
   line-height: 1;
-  cursor: grab;
+  cursor: pointer;
   user-select: none;
   opacity: 0.3;
 }
@@ -367,7 +367,11 @@ body.main-window {
   opacity: 1;
 }
 
-.pin-star:active {
+.pin-star.on {
+  cursor: grab;
+}
+
+.pin-star.on:active {
   cursor: grabbing;
 }
 

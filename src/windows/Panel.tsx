@@ -221,19 +221,22 @@ export default function Panel() {
   };
 
   const togglePin = (task: Task) => {
-    // 핀 지정 시 우선순위를 맨 아래로 부여, 해제 시 값 유지(표시 안 됨). (FR-08 / D-31)
-    const willPin = !task.pinned;
-    const updated = touch({
-      ...task,
-      pinned: willPin,
-      pinOrder: willPin ? nextPinOrder(tasks) : task.pinOrder,
-    });
-    commit(replaceTask(tasks, updated));
+    commit(replaceTask(tasks, touch({ ...task, pinned: !task.pinned }))); // FR-08
   };
 
-  // 오늘 할 일 중 직접 지정 별표 토글 (D-31 개정)
+  // 오늘 할 일 중 직접 지정 별표 토글 — 별표 시 별표 그룹 맨 아래 순서 부여(위로 모임). (D-31 개정)
   const toggleStar = (task: Task) => {
-    commit(replaceTask(tasks, touch({ ...task, starred: !task.starred })));
+    const willStar = !task.starred;
+    commit(
+      replaceTask(
+        tasks,
+        touch({
+          ...task,
+          starred: willStar,
+          pinOrder: willStar ? nextPinOrder(tasks) : task.pinOrder,
+        }),
+      ),
+    );
   };
 
   // 오늘 할 일 드래그 정렬 (D-31)
@@ -468,6 +471,7 @@ export default function Panel() {
                           (pinDragOverId === t.id ? " drag-over" : "")
                         }
                         onDragOver={(e) => {
+                          if (!t.starred) return; // 별표 그룹 안에서만 정렬
                           e.preventDefault();
                           e.dataTransfer.dropEffect = "move";
                           if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
@@ -476,6 +480,7 @@ export default function Panel() {
                           if (pinDragOverId === t.id) setPinDragOverId(null);
                         }}
                         onDrop={(e) => {
+                          if (!t.starred) return;
                           e.preventDefault();
                           if (pinDragId.current) reorderPin(pinDragId.current, t.id);
                           pinDragId.current = null;
@@ -484,9 +489,9 @@ export default function Panel() {
                       >
                         <span
                           className={"pin-star" + (t.starred ? " on" : "")}
-                          title="별표 지정/해제 · 드래그로 순서 변경"
-                          {...dragProps}
+                          title={t.starred ? "별표 해제 · 드래그로 순서 변경" : "별표 지정"}
                           onClick={() => toggleStar(t)}
+                          {...(t.starred ? dragProps : {})}
                         >
                           {t.starred ? settings?.pinStar || "⭐" : "☆"}
                         </span>

@@ -203,16 +203,16 @@ function Board({ session }: { session: Session }) {
     push(u, replaceTask(tasks, u));
   };
   const togglePin = (task: Task) => {
-    const willPin = !task.pinned;
-    const u = touch({
-      ...task,
-      pinned: willPin,
-      pinOrder: willPin ? nextPinOrder(tasks) : task.pinOrder,
-    });
+    const u = touch({ ...task, pinned: !task.pinned });
     push(u, replaceTask(tasks, u));
   };
   const toggleStar = (task: Task) => {
-    const u = touch({ ...task, starred: !task.starred });
+    const willStar = !task.starred;
+    const u = touch({
+      ...task,
+      starred: willStar,
+      pinOrder: willStar ? nextPinOrder(tasks) : task.pinOrder,
+    });
     push(u, replaceTask(tasks, u));
   };
   const reorderPin = (fromId: string, toId: string) => {
@@ -322,6 +322,7 @@ function Board({ session }: { session: Session }) {
                       (pinDragOverId === t.id ? " drag-over" : "")
                     }
                     onDragOver={(e) => {
+                      if (!t.starred) return;
                       e.preventDefault();
                       e.dataTransfer.dropEffect = "move";
                       if (pinDragId.current && pinDragOverId !== t.id) setPinDragOverId(t.id);
@@ -330,6 +331,7 @@ function Board({ session }: { session: Session }) {
                       if (pinDragOverId === t.id) setPinDragOverId(null);
                     }}
                     onDrop={(e) => {
+                      if (!t.starred) return;
                       e.preventDefault();
                       if (pinDragId.current) reorderPin(pinDragId.current, t.id);
                       pinDragId.current = null;
@@ -338,9 +340,9 @@ function Board({ session }: { session: Session }) {
                   >
                     <span
                       className={"pin-star" + (t.starred ? " on" : "")}
-                      title="별표 지정/해제 · 드래그로 순서 변경"
-                      {...dragProps}
+                      title={t.starred ? "별표 해제 · 드래그로 순서 변경" : "별표 지정"}
                       onClick={() => toggleStar(t)}
+                      {...(t.starred ? dragProps : {})}
                     >
                       {t.starred ? PIN_STAR : "☆"}
                     </span>

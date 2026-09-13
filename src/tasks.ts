@@ -154,34 +154,37 @@ function byCategoryThenTitle(a: Task, b: Task): number {
   return a.title.localeCompare(b.title, "ko");
 }
 
-/** 오늘 할 일(Pin): pinned && active. 수동 우선순위(pinOrder) 오름차순 → (없으면) 대분류→소분류→제목.
- *  (D-31 — 수동 우선순위가 D-21 정렬을 이 영역에 한해 대체) */
+/** 오늘 할 일(Pin): pinned && active. **별표 지정 항목을 위로**(수동 pinOrder 순), 그 아래 나머지는
+ *  기존 정렬(대분류→소분류→제목). (D-31 개정 — 별표만 수동 정렬, 나머지는 D-21) */
 export function pinnedTasks(tasks: Task[]): Task[] {
-  return tasks
-    .filter((t) => notDeleted(t) && t.status === "active" && t.pinned)
+  const list = tasks.filter((t) => notDeleted(t) && t.status === "active" && t.pinned);
+  const starred = list
+    .filter((t) => t.starred)
     .sort((a, b) => {
       const oa = a.pinOrder ?? Number.POSITIVE_INFINITY;
       const ob = b.pinOrder ?? Number.POSITIVE_INFINITY;
       if (oa !== ob) return oa - ob;
       return byCategoryThenTitle(a, b);
     });
+  const rest = list.filter((t) => !t.starred).sort(byCategoryThenTitle);
+  return [...starred, ...rest];
 }
 
-/** 새로 핀할 때 부여할 우선순위(맨 아래). 기존 핀들의 최댓값+1. (D-31) */
+/** 새로 별표할 때 부여할 우선순위(별표 그룹 맨 아래). 기존 별표들의 최댓값+1. (D-31) */
 export function nextPinOrder(tasks: Task[]): number {
   const orders = tasks
-    .filter((t) => t.pinned && t.pinOrder != null)
+    .filter((t) => t.starred && t.pinOrder != null)
     .map((t) => t.pinOrder as number);
   return orders.length ? Math.max(...orders) + 1 : 0;
 }
 
-/** 핀 목록에서 fromId 를 toId 위치로 이동 → 핀들의 pinOrder 를 0..n 재부여(변경분 touch). (D-31) */
+/** 별표 그룹 안에서 fromId 를 toId 위치로 이동 → 별표들의 pinOrder 를 0..n 재부여(변경분 touch). (D-31) */
 export function reorderPinned(tasks: Task[], fromId: string, toId: string): Task[] {
-  const pinned = pinnedTasks(tasks);
-  const from = pinned.findIndex((t) => t.id === fromId);
-  const to = pinned.findIndex((t) => t.id === toId);
+  const starred = pinnedTasks(tasks).filter((t) => t.starred);
+  const from = starred.findIndex((t) => t.id === fromId);
+  const to = starred.findIndex((t) => t.id === toId);
   if (from < 0 || to < 0 || from === to) return tasks;
-  const arr = [...pinned];
+  const arr = [...starred];
   const [moved] = arr.splice(from, 1);
   arr.splice(to, 0, moved);
   const orderMap = new Map(arr.map((t, i) => [t.id, i]));
