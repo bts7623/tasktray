@@ -7,6 +7,8 @@ export interface Theme {
   backgroundColor: string;
   textColor: string;
   fontSize: number;
+  /** 오늘 할 일 TOP5 강조 배경색. 빈 문자열=자동(테마 기반). (D-31) */
+  top5Color: string;
 }
 
 export interface WindowSize {
@@ -145,7 +147,7 @@ export const memoLock = () => invoke<void>("memo_lock");
 /** 기본 설정값(초기화용, FR-28). dataPath 는 호출부에서 현재 값을 유지한다. */
 export function defaultSettings(): Omit<Settings, "dataPath"> {
   return {
-    theme: { backgroundColor: "#1e1e1e", textColor: "#e0e0e0", fontSize: 14 },
+    theme: { backgroundColor: "#1e1e1e", textColor: "#e0e0e0", fontSize: 14, top5Color: "" },
     window: { width: 360, height: 720 },
     autoStart: false,
     titleAutoParse: false,

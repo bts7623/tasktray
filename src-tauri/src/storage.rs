@@ -64,6 +64,9 @@ pub struct Theme {
     pub background_color: String,
     pub text_color: String,
     pub font_size: u32,
+    /// 오늘 할 일 TOP5 강조 배경색. 빈 문자열=자동(테마 기반). (D-31)
+    #[serde(default)]
+    pub top5_color: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -193,6 +196,7 @@ impl Default for Settings {
                 background_color: "#1e1e1e".into(),
                 text_color: "#e0e0e0".into(),
                 font_size: 14,
+                top5_color: String::new(),
             },
             window: WindowSize {
                 width: 360,

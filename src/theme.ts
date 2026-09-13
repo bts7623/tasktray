@@ -32,6 +32,28 @@ export function applyTheme(settings: Settings, fontOverride?: number): void {
   root.style.fontSize = `${fontOverride ?? fontSize}px`;
   // 앱 폰트(종류). settings.fontFamily → 폰트 스택. (D-30)
   root.style.setProperty("--app-font", fontStack(settings.fontFamily));
+  // 오늘 할 일 TOP5 강조 배경. 커스텀값 있으면 사용, 없으면 테마 글자색 기반 자동(톤 유지·대비↑). (D-31)
+  const top5 = settings.theme.top5Color?.trim();
+  root.style.setProperty(
+    "--top5-bg",
+    top5 ? top5 : "color-mix(in srgb, var(--fg) 18%, var(--bg))",
+  );
+}
+
+/** hex(base) 에 hex(mix) 를 ratio(0~1) 만큼 섞은 hex 반환. TOP5 자동색 미리보기용. (D-31) */
+export function hexMix(base: string, mix: string, ratio: number): string {
+  const parse = (h: string): [number, number, number] => {
+    const s = h.replace("#", "");
+    if (s.length < 6) return [128, 128, 128];
+    return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
+  };
+  const [r1, g1, b1] = parse(base);
+  const [r2, g2, b2] = parse(mix);
+  const ch = (a: number, b: number) =>
+    Math.round(a * (1 - ratio) + b * ratio)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${ch(r1, r2)}${ch(g1, g2)}${ch(b1, b2)}`;
 }
 
 /** 창 라벨에 맞는 폰트 크기(px)를 고른다. 메모/환경설정은 별도 값, 그 외는 앱 화면 값. (D-25) */
