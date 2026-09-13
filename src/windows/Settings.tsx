@@ -18,7 +18,7 @@ import {
   setShortcut,
   type Settings as AppSettings,
 } from "../api";
-import { applyTheme, hexMix } from "../theme";
+import { applyTheme, autoTop5Color } from "../theme";
 import { FONT_OPTIONS } from "../fonts";
 import { checkForUpdate } from "../updater";
 import SyncSettings from "../components/SyncSettings";
@@ -411,22 +411,27 @@ export default function Settings() {
                 type="color"
                 value={
                   settings.theme.top5Color ||
-                  hexMix(settings.theme.backgroundColor, settings.theme.textColor, 0.18)
+                  autoTop5Color(settings.theme.backgroundColor, settings.theme.textColor)
                 }
                 onChange={(e) => setTheme({ top5Color: e.target.value })}
               />
               <span>TOP5</span>
             </label>
-            {settings.theme.top5Color && (
-              <button
-                type="button"
-                className="btn-sm ghost color-auto"
-                title="TOP5 색을 테마 자동으로 되돌리기"
-                onClick={() => setTheme({ top5Color: "" })}
-              >
-                자동
-              </button>
-            )}
+            <button
+              type="button"
+              className="btn-sm ghost color-reset"
+              title="배경·글자·TOP5 색상을 기본값으로 초기화"
+              onClick={() => {
+                const d = defaultSettings().theme;
+                setTheme({
+                  backgroundColor: d.backgroundColor,
+                  textColor: d.textColor,
+                  top5Color: "",
+                });
+              }}
+            >
+              초기화
+            </button>
           </div>
         </div>
         {/* 폰트 종류 (D-30) */}

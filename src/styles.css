@@ -883,11 +883,15 @@ body.main-window {
   cursor: pointer;
 }
 
-/* 색상 3종(배경·글자·TOP5) 한 줄 비교 (D-31) */
+/* 색상 3종(배경·글자·TOP5) 한 줄 비교 — 하나의 색상 영역 박스 안에 초기화까지 (D-31) */
 .color-row {
   display: flex;
   align-items: center;
   gap: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
 }
 
 .color-field {
@@ -910,8 +914,9 @@ body.main-window {
   cursor: pointer;
 }
 
-.color-auto {
-  align-self: flex-end;
+.color-reset {
+  margin-left: auto;
+  align-self: center;
 }
 
 /* 화면 크기 / 메모 크기 — 한 줄 입력 + 두 행 열 정렬 (D-24) */
