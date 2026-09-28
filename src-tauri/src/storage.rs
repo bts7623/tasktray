@@ -300,7 +300,14 @@ fn atomic_write(path: &Path, contents: &[u8]) -> Result<(), String> {
         .file_name()
         .and_then(|s| s.to_str())
         .ok_or_else(|| "잘못된 파일 경로".to_string())?;
-    let tmp = path.with_file_name(format!("{file_name}.tmp"));
+    // 임시파일명을 유니크하게: 저장이 빠르게 겹쳐도 서로 같은 .tmp 를 덮어써 충돌하지 않도록. (동시성 안정)
+    static TMP_SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let seq = TMP_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let uniq = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let tmp = path.with_file_name(format!("{file_name}.{uniq}-{seq}.tmp"));
 
     fs::write(&tmp, contents).map_err(|e| format!("임시파일 기록 실패({}): {e}", tmp.display()))?;
     fs::rename(&tmp, path).map_err(|e| {
